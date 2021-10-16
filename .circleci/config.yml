@@ -1,20 +1,39 @@
 version: 2.1
 
-path: &path
+###########
+### Reusable Variables
+###########
+executor: &executor
   type: string
-  default: ''
-repo: &repo
+site: &site
   type: string
-  default: ''
-docroot: &docroot
-  type: string
-  default: ''
 cms: &cms
   type: string
-  default: 'drupal'
-db_type: &db-type
+repo: &repo
   type: string
-  default: ''
+pr-branch: &pr-branch
+  type: string
+db-type: &db-type
+  type: string
+docroot: &docroot
+  type: string
+site-hosting: &site-hosting
+  type: string
+site-id: &site-id
+  type: string
+site-env: &site-env
+  type: string
+steps: &steps
+  type: steps
+  default: []
+hook: &hook
+  type: string
+update-branch: &update-branch
+  type: string
+  default: "feature/updates"
+path: &path
+  type: string
+  default: "project-update"
 update: &update
   type: steps
   default: []
@@ -24,61 +43,118 @@ commit: &commit
 push: &push
   type: steps
   default: []
-update_branch: &update-branch
+db-file: &db-file
   type: string
-  default: "feature/updates"
-project_path: &project-path
+  default: "/tmp/db.sql.gz"
+db-host: &db-host
   type: string
-  default: "project-update"
-steps: &steps
-  type: steps
-  default: []
-hook: &hook
+  default: 'db'
+db-user: &db-user
   type: string
-db-type: &db-type
+  default: 'user'
+db-pass: &db-pass
   type: string
-  default: ''
-site: &site
+  default: 'user'
+db-name: &db-name
   type: string
-  default: 'coit-8'
+  default: 'default'
 
-default-steps: &default-steps
+default-params: &default-params
+  'site': *site
   'path': *path
-  'repo': *repo
-  'docroot': *docroot
   'cms': *cms
-  'db-type': *db-type
-  'update': *update
-  'commit': *commit
-  'push': *push
-
-cms-default-steps: &cms-default-steps
-  'path': *path
   'repo': *repo
-  'docroot': *docroot
+  'pr-branch': *pr-branch
   'db-type': *db-type
-  'update': *update
-  'commit': *commit
-  'push': *push
+  'docroot': *docroot
+  'update-branch': *update-branch
+  'site-hosting': *site-hosting
+  'site-id': *site-id
+  'site-env': *site-env
 
+params: &params
+  'path': '<<parameters.path>>'
+  'site': '<<parameters.site>>'
+  'cms': '<<parameters.cms>>'
+  'repo': '<<parameters.repo>>'
+  'pr-branch': '<<parameters.pr-branch>>'
+  'db-type': '<<parameters.db-type>>'
+  'docroot': '<<parameters.docroot>>'
+  'update-branch': '<<parameters.update-branch>>'
+  'site-hosting': '<<parameters.site-hosting>>'
+  'site-id': '<<parameters.site-id>>'
+  'site-env': '<<parameters.site-env>>'
+
+pipeline-params: &pipeline-params
+  'site': '<<pipeline.parameters.site>>'
+  'cms': '<<pipeline.parameters.cms>>'
+  'repo': '<<pipeline.parameters.repo>>'
+  'pr-branch': '<<pipeline.parameters.pr-branch>>'
+  'db-type': '<<pipeline.parameters.db-type>>'
+  'docroot': '<<pipeline.parameters.docroot>>'
+  'update-branch': '<<pipeline.parameters.update-branch>>'
+  'site-hosting': '<<pipeline.parameters.site-hosting>>'
+  'site-id': '<<pipeline.parameters.site-id>>'
+  'site-env': '<<pipeline.parameters.site-env>>'
+
+###########
+### Pipeline Configuration
+###########
 parameters:
-  executor:
-    type: string
+  run_update:
+    description: 'Allow the updates to be ran.'
+    type: boolean
+    default: false
+  executor: 
+    <<: *executor
     default: 'custom/pantheon'
-  site: *site
-  cms: *cms
+  site:
+    <<: *site
+    default: 'coit-8'
+  cms:
+    <<: *cms
+    default: 'drupal8'
+  repo:
+    <<: *repo
+    default: 'git@github.com:kanopi/coit-8'
+  pr-brach:
+    <<: *pr-branch
+    default: 'master'
+  db-type:
+    <<: *db-type
+    default: 'pantheon'
+  docroot: 
+    <<: *docroot
+    default: 'web'
+  update-branch:
+    <<: *update-branch
+    default: 'feature/updates'
+  site-hosting: 
+    <<: *site-hosting
+    default: 'pantheon'
+  site-id:
+    <<: *site-id
+    default: 'coit-main'
+  site-env: 
+    <<: *site-env
+    default: 'live'
 
+###########
+### Custom Orbs
+###########
 orbs:
   custom:
     orbs:
       ci-tools: kanopi/ci-tools@1.7.1
+
     commands:
+
+      ## Install Tools for Specific CMS
       install-tools:
         description: |
           Install Necessary Tools
         parameters:
-          cms:
-            type: string
+          cms: *cms
         steps:
           - ci-tools/install-github-cli
           - when:
@@ -95,20 +171,22 @@ orbs:
                 equal: ["wordpress", <<parameters.cms>>]
               steps:
                 - ci-tools/install-wpcli  
+
+      ## Run Hook
       run-hook:
         description: >
           Hook command to run at a particular point in the process
         parameters:
-          path:
-            type: string
-          hook:
-            type: string
+          path: *path
+          hook: *hook
         steps:
           - run:
               name: Running Hook <<parameters.hook>>
               command: |
                ( [[ -f .updates/<<parameters.hook>> ]] && .updates/<<parameters.hook>> ) || true
               path: <<parameters.path>>      
+
+      ## Checkout Project
       checkout-project:
         description: >
           Used for checking out the project
@@ -124,19 +202,9 @@ orbs:
               name: Checkout Update Branch
               command: git checkout -B <<parameters.update-branch>>
               path: <<parameters.path>>
-      start-php-server:
-        description: >
-          Start PHP Server
-        parameters:
-          path: *path
-          docroot: *docroot
-        steps:
-          - run:
-              name: Start PHP Server
-              command: php -S 0.0.0.0:80
-              background: true
-              path: "<<parameters.path>>/<<parameters.docroot>>"
-      run-steps:
+
+      ## Run Step
+      run-step:
         description: >
           Abstract command to run steps with hook integration.
         parameters:
@@ -150,53 +218,73 @@ orbs:
           - steps: << parameters.steps >>
           - run-hook:
               hook: 'post-<<parameters.hook>>'
-              path: <<parameters.path>>
+              path: <<parameters.path>>              
 
-      # Update Commands
+      ## Start PHP Server
+      start-php-server:
+        description: >
+          Start PHP Server
+        parameters:
+          path: *path
+          docroot: *docroot
+        steps:
+          - run:
+              name: Start PHP Server
+              command: php -S 0.0.0.0:80
+              background: true
+              path: "<<parameters.path>>/<<parameters.docroot>>"
+
+      ## Update Project
       update-project:
         description: >
           Command to run updates on project
-        parameters: *default-steps
+        parameters: *default-params
         steps:
           - install-tools:
               cms: <<parameters.cms>>
-          - run-steps:
+          - run-step:
               path: <<parameters.path>>
               hook: 'checkout'
               steps:
                 - checkout-project:
                     repo: <<parameters.repo>>
-          - run-steps:
+                    path: <<parameters.path>>
+                    update-branch: <<parameters.update-branch>>
+          - run-step:
               path: <<parameters.path>>
               hook: 'start'
               steps:
                 - start-php-server:
                     path: <<parameters.path>>
                     docroot: <<parameters.docroot>>
-          - run-steps:
+          - run-step:
               path: <<parameters.path>>
               hook: 'db'
               steps:
                 - pull-db:
-                    db-type: <<parameters.db-type>>
-          - run-steps:
+                    <<: *params
+          - run-step:
               path: <<parameters.path>>
               hook: 'update'
               steps: <<parameters.update>>
-          - run-steps:
+          - run-step:
               path: <<parameters.path>>
               hook: 'commit'
               steps: <<parameters.commit>>
-          - run-steps:
+          - run-step:
               path: <<parameters.path>>
               hook: 'push'
               steps: <<parameters.push>>
-          - run-steps:
+          - run-step:
               path: <<parameters.path>>
               hook: 'push'
               # To DO: Run command to Create PR
 
-      # Update Commands
+      #############
+      ## Run Updates using a specific Method
+      #############
+
+      ## Run Update with Drush
       run-update-drush:
         parameters:
           path: *path
@@ -205,6 +293,8 @@ orbs:
               name: Run Drush Update
               command: drush up -y
               path: <<parameters.path>>
+
+      ## Run Update with WPCLI
       run-update-wpcli:
         parameters:
           path: *path
@@ -213,6 +303,8 @@ orbs:
               name: Run WPCLI Update
               command: wp 
               path: <<parameters.path>>
+
+      ## Run Update with Composer
       run-update-composer:
         parameters:
           path: *path
@@ -222,6 +314,7 @@ orbs:
               command: composer update --optimize-autoloader
               path: <<parameters.path>>
 
+      ## Run Update Steps
       run-update:
         parameters:
           cms: *cms
@@ -245,47 +338,38 @@ orbs:
               steps:
                 - run-update-wpcli
 
-      # Pull Databases
+      #############
+      ## Pull Database From Host
+      #############      
+
+      ## Pull DB with Terminus
       pantheon-pull-db:
         description: >
           Command to pull database from Pantheon
         parameters:
+          <<: *default-params
+          db-file: *db-file
+          db-host: *db-host
+          db-user: *db-user
+          db-pass: *db-pass
+          db-name: *db-name
           token:
             type: string
             default: "${TERMINUS_TOKEN}"
-          site:
-            type: string
-            default: "${UPDATE_PANTHEON_SITE}"
-          env:
-            type: string
-            default: "${UPDATE_PANTHEON_ENV}"
-          file:
-            type: string
-            default: "/tmp/db.sql.gz"
-          db-host:
-            type: string
-            default: 'db'
-          db-user:
-            type: string
-            default: 'user'
-          db-pass:
-            type: string
-            default: 'user'
-          db-name:
-            type: string
-            default: 'default'
         steps:
           - ci-tools/install-terminus
           - run:
-              name: Authenticate to Pantheon
+              name: Authenticate to Terminus
               command: |
                 terminus auth:login --machine-token=<<parameters.token>>
           - run:
               name: Create and Pull Database From Pantheon
               command: |
-                terminus backup:create <<parameters.site>>.<<parameters.env>> --element=db
-                terminus backup:get <<parameters.site>>.<<parameters.env>> --element="db" --to="<<parameters.file>>"
-                zcat < <<parameters.file>> | mysql -h <<parameters.db-host>> -u <<parameters.db-user>> -p <<parameters.db-pass>> <<parameters.db-name>>
+                terminus backup:create <<parameters.site-id>>.<<parameters.site-env>> --element=db
+                terminus backup:get <<parameters.site-id>>.<<parameters.site-env>> --element="db" --to="<<parameters.db-file>>"
+                zcat < <<parameters.db-file>> | mysql -h <<parameters.db-host>> -u <<parameters.db-user>> -p <<parameters.db-pass>> <<parameters.db-name>>
+
+      ## Pull DB with Drush
       drush-pull-db:
         description: >
           Use Drush to Pull Database
@@ -293,6 +377,8 @@ orbs:
           - run:
               name: Test
               command: echo "Hello"
+
+      ## Pull DB with SSH
       generic-pull-db:
         description: >
           Generally pull database using basic connection
@@ -300,6 +386,8 @@ orbs:
           - run:
               name: Test
               command: echo "Hello"
+
+      ## Pull DB with Acquia CLI
       acquia-pull-db:
         description: >
           Used for pulling database from Acquia
@@ -307,6 +395,8 @@ orbs:
           - run:
               name: Test
               command: echo "Hello"
+
+      ## Pull DB from WPEngine
       wpengine-pull-db:
         description: >
           Used for pulling database from WP Engine
@@ -314,6 +404,8 @@ orbs:
           - run:
               name: Test
               command: echo "Hello"
+
+      ## Pull DB with WPCli
       wpcli-pull-db:
         description: >
           Use WPCli to Pull Database
@@ -322,102 +414,83 @@ orbs:
               name: Test
               command: echo "Hello"
 
-      # General Databases
+      ## Pull DB Entrypoint
       pull-db:
-        parameters:
-          db-type: *db-type
+        description: >
+          Used to pull the database from a specific place.
+        parameters: *default-params
         steps:
           - when:
               condition:
                 equal: ["pantheon", <<parameters.db-type>>]
               steps:
-                - pantheon-pull-db
+                - pantheon-pull-db: *params
           - when:
               condition:
                 equal: ["acquia", <<parameters.db-type>>]
               steps:
-                - acquia-pull-db
+                - acquia-pull-db: *params
           - when:
               condition:
                 equal: ["wpengine", <<parameters.db-type>>]
               steps:
-                - wpengine-pull-db
+                - wpengine-pull-db: *params
           - when:
               condition:
                 equal: ["drush", <<parameters.db-type>>]
               steps:
-                - drush-pull-db
+                - drush-pull-db: *params
           - when:
               condition:
                 equal: ["wpcli", <<parameters.db-type>>]
               steps:
-                - wpcli-pull-db
+                - wpcli-pull-db: *params
           - when:
               condition:
                 equal: ["generic", <<parameters.db-type>>]
               steps:
-                - generic-pull-db
+                - generic-pull-db: *params
 
-      # CMS Update
+      #############
+      ## Update CMS
+      ############# 
+
+      ## Update for D7
       update_drupal7:
         description: >
           Run Updates on a Drupal 7 Site
-        parameters: *cms-default-steps
+        parameters: *default-params
         steps:
-          - update-project:
-              cms: 'drupal7'
+          - update-project: *params
+
+      ## Update for D8/D9
       update_drupal:
         description: >
           Run Updates on a Drupal 8 Site
-        parameters: *cms-default-steps
+        parameters: *default-params
         steps:
-          - update-project:
-              cms: 'drupal'
+          - update-project: *params
+
+      ## Update for WordPress
       update_wordpress:
         description: >
           Run Updates on a WordPress Site
-        parameters: *cms-default-steps
+        parameters: *default-params
         steps:
-          - update-project:
-              cms: 'wordpress'
+          - update-project: *params
 
-      # Update Entrypoint
-      run-update-steps:
+      ## Run Update Step
+      run-update:
         description: >
-          Entry command for running updates
-        parameters:
-          site: *site
-          cms: *cms
-        steps:                
+          Run Site Update
+        parameters: *default-params
+        steps:
           - checkout
-          - ci-tools/install-jq
-          - run:
-              name: Setup Variables
-              command: |
-                SITE="<<parameters.site>>"
-                if [[ "${SITE}" != "" ]]; then
-                  echo "Site Required"
-                  exit
-                fi
-
-                KEYS=$(jq -r -M --arg site "$SITE" '.[$site] | keys | join(" ")' sites.json)
-                if [[ "$KEYS" == "null" ]]; then
-                  echo "Site not found in configuration"
-                  exit 1
-                fi
-
-                IFS=' ' read -r -a VARIABLES \<<< "$KEYS"
-                JSON=$(jq -r -M --arg site "$SITE" '.[$site]' sites.json)
-                for var in "${VARIABLES[@]}"; do
-                  data=$(echo "$JSON" | jq -r --arg var "$var" '.[$var]')
-                  KEY=$(echo $var | tr '[:lower:]' '[:upper:]' | sed 's/\-/_/' )
-                  echo "export UPDATE_${KEY}='${data}'" >> $BASH_ENV
-                done
           - when:
               condition:
                 equal: ["drupal7", <<parameters.cms>>]
               steps:
-                - update_drupal7
+                - update_drupal7: *params
           - when:
               condition:
                 or:
@@ -425,14 +498,17 @@ orbs:
                   - equal: ["drupal9", <<parameters.cms>>]
                   - equal: ["drupal", <<parameters.cms>>]
               steps:
-                - update_drupal
+                - update_drupal: *params
           - when:
               condition:
                 equal: ["wordpress", <<parameters.cms>>]
               steps:
-                - update_wordpress
+                - update_wordpress: *params
 
-    executors:
+  executors:
+      php-mysql:
+        docker:
+          - image: cimg/php:7.4
       acquia:
         docker:
           - image: cimg/php:7.4      
@@ -450,18 +526,24 @@ orbs:
               MYSQL_PASSWORD: user
       wpengine:
         docker:
-          - image: cimg/php:7.4      
+          - image: cimg/php:7.4 
 
+###########
+### Jobs
+###########
 jobs:
   update_project:
     executor: <<pipeline.parameters.executor>>
     working_directory: ~/projects
     steps:
-      - custom/run-update-steps:
-          site: <<pipeline.parameters.site>>
+      - custom/run-update: *pipeline-params
 
+###########
+### Workflows
+###########
 workflows:
   version: 2.1
-  build:
+  update:
+    when: << pipeline.parameters.run_update >>
     jobs:
       - update_project
