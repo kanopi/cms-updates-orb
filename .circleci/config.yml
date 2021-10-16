@@ -58,6 +58,9 @@ db-pass: &db-pass
 db-name: &db-name
   type: string
   default: 'default'
+method: &method
+  type: string
+  default: ''
 
 default-params: &default-params
   site: *site
@@ -71,6 +74,7 @@ default-params: &default-params
   site-hosting: *site-hosting
   site-id: *site-id
   site-env: *site-env
+  method: *method
 
 params: &params
   path: '<<parameters.path>>'
@@ -84,6 +88,7 @@ params: &params
   site-hosting: '<<parameters.site-hosting>>'
   site-id: '<<parameters.site-id>>'
   site-env: '<<parameters.site-env>>'
+  method: '<<parameters.method>>'
 
 pipeline-params: &pipeline-params
   site: '<<pipeline.parameters.site>>'
@@ -96,6 +101,7 @@ pipeline-params: &pipeline-params
   site-hosting: '<<pipeline.parameters.site-hosting>>'
   site-id: '<<pipeline.parameters.site-id>>'
   site-env: '<<pipeline.parameters.site-env>>'
+  method: '<<pipeline.parameters.method>>'
 
 ###########
 ### Pipeline Configuration
@@ -138,6 +144,9 @@ parameters:
   site-env: 
     <<: *site-env
     default: 'live'
+  method:
+    <<: *method
+    default: 'composer'
 
 ###########
 ### Custom Orbs
@@ -284,6 +293,67 @@ orbs:
               steps: <<parameters.push>>
               # To DO: Run command to Create PR
 
+
+      #############
+      ## Clear Cache on Site
+      #############
+      clear-cache-drush:
+        parameters:
+          cms: *cms
+          path: *path
+        steps:
+          - when:
+              condition:
+                equal: ["drupal7", <<parameters.cms>>]
+              steps:
+                - run:
+                    name: Drush Clear Cache
+                    command: drush cc all
+                    path: <<parameters.path>>
+          - unless:
+              condition:
+                equal: ["drupal7", <<parameters.cms>>]
+              steps:
+                - run:
+                    name: Drush Cache Rebuild
+                    command: drush cr
+                    path: <<parameters.path>>
+
+      clear-cache-wpcli:
+        parameters:
+          path: *path
+        steps:
+          - run:
+              name: WPCLI Clear Cache
+              command: wp cache clear
+              path: <<parameters.path>>
+          - run:
+              name: WPCLI Transient Delete
+              command: wp transient delete --all
+              path: <<parameters.path>>
+
+      clear-cache:
+        parameters:
+          cms: *cms
+          path: *path
+        steps:
+          - when:
+              condition:
+                or:
+                  - equal: ["drupal", <<parameters.cms>>]
+                  - equal: ["drupal8", <<parameters.cms>>]
+                  - equal: ["drupal9", <<parameters.cms>>]
+              steps:
+                - clear-cache-drush:
+                    cms: <<parameters.cms>>
+                    path: <<parameters.path>>
+          - when:
+              condition:
+                equal: ["wordpress", <<parameters.cms>>]
+              steps:
+                - clear-cache-wpcli:
+                    path: <<parameters.path>>
+
       #############
       ## Run Updates using a specific Method
       #############
@@ -315,32 +385,59 @@ orbs:
         steps:
           - run:
               name: Run Composer Update
-              command: composer update --optimize-autoloader
+              command: composer update -W --optimize-autoloader
               path: <<parameters.path>>
 
       ## Run Update Steps
       run-update:
         parameters:
           cms: *cms
+          method: *method
+          path: *path
         steps:
           - when:
               condition:
-                equal: ["drupal7", <<parameters.cms>>]
+                equal: ["drush", <<parameters.method>>]
               steps:
-                - run-update-drush
+                - clear-cache-drush:
+                    path: <<parameters.path>>
+                    cms: <<parameters.cms>>
+                - run-update-drush:
+                    path: <<parameters.path>>
+                - clear-cache-drush:
+                    path: <<parameters.path>>
+                    cms: <<parameters.cms>>
           - when:
               condition:
-                or:
-                  - equal: ["drupal8", <<parameters.cms>>]
-                  - equal: ["drupal9", <<parameters.cms>>]
-                  - equal: ["drupal", <<parameters.cms>>]
+                equal: ["composer", <<parameters.method>>]
               steps:
-                - run-update-composer
+                - clear-cache:
+                    path: <<parameters.path>>
+                    cms: <<parameters.cms>>
+                - run-update-composer:
+                    path: <<parameters.path>>
+                - when:
+                    condition:
+                      or:
+                        - equal: ["drupal", <<parameters.cms>>]
+                        - equal: ["drupal7", <<parameters.cms>>]
+                        - equal: ["drupal8", <<parameters.cms>>]
+                    steps:
+                      - run:
+                          name: Drush Export 
+                - clear-cache:
+                    path: <<parameters.path>>
+                    cms: <<parameters.cms>>
           - when:
               condition:
-                equal: ["wordpress", <<parameters.cms>>]
+                equal: ["wpcli", <<parameters.method>>]
               steps:
-                - run-update-wpcli
+                - clear-cache-wpcli:
+                    path: <<parameters.path>>
+                - run-update-wpcli:
+                    path: <<parameters.path>>
+                - clear-cache-wpcli:
+                    path: <<parameters.path>>
 
       #############
       ## Pull Database From Host
