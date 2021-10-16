@@ -194,6 +194,10 @@ orbs:
           update-branch: *update-branch
         steps:
           - run:
+              name: Temp Fix for SSH Key
+              command: |
+                echo 'IdentityFile ~/.ssh/development_key' >> ~/.ssh/config
+          - run:
               name: Checkout Project
               command: git clone <<parameters.repo>> <<parameters.path>>
           - run:
