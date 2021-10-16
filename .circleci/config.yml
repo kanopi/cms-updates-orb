@@ -370,7 +370,7 @@ orbs:
               command: |
                 terminus backup:create <<parameters.site-id>>.<<parameters.site-env>> --element=db
                 terminus backup:get <<parameters.site-id>>.<<parameters.site-env>> --element="db" --to="<<parameters.db-file>>"
-                zcat < <<parameters.db-file>> | mysql -h <<parameters.db-host>> -u <<parameters.db-user>> -p <<parameters.db-pass>> <<parameters.db-name>>
+                zcat < <<parameters.db-file>> | mysql -h <<parameters.db-host>> -u <<parameters.db-user>> -p<<parameters.db-pass>> <<parameters.db-name>>
 
       ## Pull DB with Drush
       drush-pull-db:
