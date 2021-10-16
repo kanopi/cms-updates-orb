@@ -530,13 +530,13 @@ orbs:
             - image: cimg/php:7.4
         acquia:
           docker:
-            - image: cimg/php:7.4      
+            - image: cimg/php:7.4
         pantheon:
-          docker:                    
+          docker:
             - image: cimg/php:7.4
             - image: circleci/redis:5-alpine
               name: redis
-            - image: cimg/mariadb:10.4
+            - image: mariadb:10.4
               name: db
               environment:
                 MYSQL_ROOT_PASSWORD: root
