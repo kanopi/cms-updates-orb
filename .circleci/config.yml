@@ -107,7 +107,7 @@ orbs:
           - run:
               name: Running Hook <<parameters.hook>>
               command: |
-                [[ -f .updates/<<parameters.hook>> ]] && .updates/<<parameters.hook>>
+               ( [[ -f .updates/<<parameters.hook>> ]] && .updates/<<parameters.hook>> ) || true
               path: <<parameters.path>>      
       checkout-project:
         description: >
