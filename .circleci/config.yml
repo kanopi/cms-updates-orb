@@ -433,6 +433,11 @@ orbs:
           Used to pull the database from a specific place.
         parameters: *default-params
         steps:
+          - run:
+              name: Install DB related tools
+              command: |
+                sudo apt update
+                sudo apt install mysql-client
           - when:
               condition:
                 equal: ["pantheon", <<parameters.db-type>>]
