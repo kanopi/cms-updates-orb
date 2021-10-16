@@ -413,6 +413,8 @@ orbs:
               condition:
                 equal: ["composer", <<parameters.method>>]
               steps:
+                - ci-tools/composer-install:
+                    path: <<parameters.path>>
                 - clear-cache:
                     path: <<parameters.path>>
                     cms: <<parameters.cms>>
