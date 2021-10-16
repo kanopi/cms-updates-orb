@@ -1,0 +1,11 @@
+{
+    "coit-8": {
+        "cms": "drupal8",
+        "repo": "git@github.com:kanopi/coit-8",
+        "pr-branch": "main",
+        "db": "pantheon",
+        "docroot": "web",
+        "pantheon-site": "coit-8",
+        "pantheon-env": "live"
+    }
+}
