@@ -117,7 +117,7 @@ parameters:
   repo:
     <<: *repo
     default: 'git@github.com:kanopi/coit-8'
-  pr-brach:
+  pr-branch:
     <<: *pr-branch
     default: 'master'
   db-type:
@@ -146,12 +146,10 @@ orbs:
   custom:
     orbs:
       ci-tools: kanopi/ci-tools@1.7.1
-
     commands:
-
       ## Install Tools for Specific CMS
       install-tools:
-        description: |
+        description: >
           Install Necessary Tools
         parameters:
           cms: *cms
@@ -238,7 +236,11 @@ orbs:
       update-project:
         description: >
           Command to run updates on project
-        parameters: *default-params
+        parameters:
+          <<: *default-params
+          update: *update
+          commit: *commit
+          push: *push
         steps:
           - install-tools:
               cms: <<parameters.cms>>
@@ -275,9 +277,6 @@ orbs:
               path: <<parameters.path>>
               hook: 'push'
               steps: <<parameters.push>>
-          - run-step:
-              path: <<parameters.path>>
-              hook: 'push'
               # To DO: Run command to Create PR
 
       #############
@@ -373,6 +372,8 @@ orbs:
       drush-pull-db:
         description: >
           Use Drush to Pull Database
+        parameters:
+          <<: *default-params
         steps:
           - run:
               name: Test
@@ -382,6 +383,8 @@ orbs:
       generic-pull-db:
         description: >
           Generally pull database using basic connection
+        parameters:
+          <<: *default-params
         steps:
           - run:
               name: Test
@@ -391,6 +394,8 @@ orbs:
       acquia-pull-db:
         description: >
           Used for pulling database from Acquia
+        parameters:
+          <<: *default-params
         steps:
           - run:
               name: Test
@@ -400,6 +405,8 @@ orbs:
       wpengine-pull-db:
         description: >
           Used for pulling database from WP Engine
+        parameters:
+          <<: *default-params          
         steps:
           - run:
               name: Test
@@ -409,6 +416,8 @@ orbs:
       wpcli-pull-db:
         description: >
           Use WPCli to Pull Database
+        parameters:
+          <<: *default-params
         steps:
           - run:
               name: Test
@@ -480,7 +489,7 @@ orbs:
           - update-project: *params
 
       ## Run Update Step
-      run-update:
+      run-updates:
         description: >
           Run Site Update
         parameters: *default-params
@@ -505,45 +514,45 @@ orbs:
               steps:
                 - update_wordpress: *params
 
-  executors:
-      php-mysql:
-        docker:
-          - image: cimg/php:7.4
-      acquia:
-        docker:
-          - image: cimg/php:7.4      
-      pantheon:
-        docker:                    
-          - image: cimg/php:7.4
-          - image: circleci/redis:5-alpine
-            name: redis
-          - image: cimg/mariadb:10.4
-            name: db
-            environment:
-              MYSQL_ROOT_PASSWORD: root
-              MYSQL_DATABASE: default
-              MYSQL_USER: user
-              MYSQL_PASSWORD: user
-      wpengine:
-        docker:
-          - image: cimg/php:7.4 
+    executors:
+        php-mysql:
+          docker:
+            - image: cimg/php:7.4
+        acquia:
+          docker:
+            - image: cimg/php:7.4      
+        pantheon:
+          docker:                    
+            - image: cimg/php:7.4
+            - image: circleci/redis:5-alpine
+              name: redis
+            - image: cimg/mariadb:10.4
+              name: db
+              environment:
+                MYSQL_ROOT_PASSWORD: root
+                MYSQL_DATABASE: default
+                MYSQL_USER: user
+                MYSQL_PASSWORD: user
+        wpengine:
+          docker:
+            - image: cimg/php:7.4 
 
 ###########
 ### Jobs
 ###########
 jobs:
-  update_project:
+  run_cms_updates:
     executor: <<pipeline.parameters.executor>>
     working_directory: ~/projects
     steps:
-      - custom/run-update: *pipeline-params
+      - custom/run-updates: *pipeline-params
 
 ###########
 ### Workflows
 ###########
 workflows:
-  version: 2.1
-  update:
+  version: 2
+  cms_update_workflows:
     when: << pipeline.parameters.run_update >>
     jobs:
-      - update_project
+      - run_cms_updates
