@@ -60,42 +60,42 @@ db-name: &db-name
   default: 'default'
 
 default-params: &default-params
-  'site': *site
-  'path': *path
-  'cms': *cms
-  'repo': *repo
-  'pr-branch': *pr-branch
-  'db-type': *db-type
-  'docroot': *docroot
-  'update-branch': *update-branch
-  'site-hosting': *site-hosting
-  'site-id': *site-id
-  'site-env': *site-env
+  site: *site
+  path: *path
+  cms: *cms
+  repo: *repo
+  pr-branch: *pr-branch
+  db-type: *db-type
+  docroot: *docroot
+  update-branch: *update-branch
+  site-hosting: *site-hosting
+  site-id: *site-id
+  site-env: *site-env
 
 params: &params
-  'path': '<<parameters.path>>'
-  'site': '<<parameters.site>>'
-  'cms': '<<parameters.cms>>'
-  'repo': '<<parameters.repo>>'
-  'pr-branch': '<<parameters.pr-branch>>'
-  'db-type': '<<parameters.db-type>>'
-  'docroot': '<<parameters.docroot>>'
-  'update-branch': '<<parameters.update-branch>>'
-  'site-hosting': '<<parameters.site-hosting>>'
-  'site-id': '<<parameters.site-id>>'
-  'site-env': '<<parameters.site-env>>'
+  path: '<<parameters.path>>'
+  site: '<<parameters.site>>'
+  cms: '<<parameters.cms>>'
+  repo: '<<parameters.repo>>'
+  pr-branch: '<<parameters.pr-branch>>'
+  db-type: '<<parameters.db-type>>'
+  docroot: '<<parameters.docroot>>'
+  update-branch: '<<parameters.update-branch>>'
+  site-hosting: '<<parameters.site-hosting>>'
+  site-id: '<<parameters.site-id>>'
+  site-env: '<<parameters.site-env>>'
 
 pipeline-params: &pipeline-params
-  'site': '<<pipeline.parameters.site>>'
-  'cms': '<<pipeline.parameters.cms>>'
-  'repo': '<<pipeline.parameters.repo>>'
-  'pr-branch': '<<pipeline.parameters.pr-branch>>'
-  'db-type': '<<pipeline.parameters.db-type>>'
-  'docroot': '<<pipeline.parameters.docroot>>'
-  'update-branch': '<<pipeline.parameters.update-branch>>'
-  'site-hosting': '<<pipeline.parameters.site-hosting>>'
-  'site-id': '<<pipeline.parameters.site-id>>'
-  'site-env': '<<pipeline.parameters.site-env>>'
+  site: '<<pipeline.parameters.site>>'
+  cms: '<<pipeline.parameters.cms>>'
+  repo: '<<pipeline.parameters.repo>>'
+  pr-branch: '<<pipeline.parameters.pr-branch>>'
+  db-type: '<<pipeline.parameters.db-type>>'
+  docroot: '<<pipeline.parameters.docroot>>'
+  update-branch: '<<pipeline.parameters.update-branch>>'
+  site-hosting: '<<pipeline.parameters.site-hosting>>'
+  site-id: '<<pipeline.parameters.site-id>>'
+  site-env: '<<pipeline.parameters.site-env>>'
 
 ###########
 ### Pipeline Configuration
@@ -192,7 +192,7 @@ orbs:
           Used for checking out the project
         parameters:
           repo: *repo
-          path: *project-path
+          path: *path
           update-branch: *update-branch
         steps:
           - run:
