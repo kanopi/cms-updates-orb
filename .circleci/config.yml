@@ -242,7 +242,6 @@ orbs:
           Command to run updates on project
         parameters:
           <<: *default-params
-          update: *update
           commit: *commit
           push: *push
         steps:
@@ -272,7 +271,9 @@ orbs:
           - run-step:
               path: <<parameters.path>>
               hook: 'update'
-              steps: <<parameters.update>>
+              steps:
+                - run-update:
+                    <<: *params
           - run-step:
               path: <<parameters.path>>
               hook: 'commit'
