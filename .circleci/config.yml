@@ -104,7 +104,7 @@ parameters:
   run_update:
     description: 'Allow the updates to be ran.'
     type: boolean
-    default: false
+    default: true
   executor: 
     <<: *executor
     default: 'custom/pantheon'
