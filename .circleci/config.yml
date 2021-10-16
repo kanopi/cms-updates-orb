@@ -282,7 +282,9 @@ orbs:
               hook: 'update'
               steps:
                 - run-update:
-                    <<: *params
+                    cms: <<parameters.cms>>
+                    path: <<parameters.path>>
+                    method: <<parameters.method>>
           - run-step:
               path: <<parameters.path>>
               hook: 'commit'
@@ -425,6 +427,8 @@ orbs:
                     steps:
                       - run:
                           name: Drush Export 
+                          command: drush cex -y
+                          path: <<parameters.path>>
                 - clear-cache:
                     path: <<parameters.path>>
                     cms: <<parameters.cms>>
