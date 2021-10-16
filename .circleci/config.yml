@@ -494,6 +494,7 @@ orbs:
           Run Site Update
         parameters: *default-params
         steps:
+          - ci-tools/copy-ssh-key
           - checkout
           - when:
               condition:
@@ -555,4 +556,5 @@ workflows:
   cms_update_workflows:
     when: << pipeline.parameters.run_update >>
     jobs:
-      - run_cms_updates
+      - run_cms_updates:
+          context: kanopi-code
