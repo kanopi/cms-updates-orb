@@ -612,7 +612,7 @@ orbs:
                 - run:
                     name: Link Config
                     command: |
-                      ln -sf ~/project/config/pantheon/pantheon.ini /etc/php/7.4/cli/conf.d/pantheon.ini
+                      sudo ln -sf ${CIRCLE_WORKING_DIRECTORY}/config/pantheon/pantheon.ini /etc/php/7.4/cli/conf.d/pantheon.ini
 
       #############
       ## Update CMS
