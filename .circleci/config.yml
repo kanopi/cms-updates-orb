@@ -612,7 +612,7 @@ orbs:
                 - run:
                     name: Link Config
                     command: |
-                      sudo ln -sf ${CIRCLE_WORKING_DIRECTORY}/config/pantheon/pantheon.ini /etc/php/7.4/cli/conf.d/pantheon.ini
+                      sudo ln -sf ${HOME}/project/config/pantheon/pantheon.ini /etc/php/7.4/cli/conf.d/pantheon.ini
 
       #############
       ## Update CMS
@@ -739,7 +739,7 @@ orbs:
 jobs:
   run_cms_updates:
     executor: <<pipeline.parameters.executor>>
-    working_directory: ~/projects
+    working_directory: ~/project
     steps:
       - custom/run-updates: *pipeline-params
 
