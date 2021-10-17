@@ -103,6 +103,28 @@ pipeline-params: &pipeline-params
   site-env: '<<pipeline.parameters.site-env>>'
   method: '<<pipeline.parameters.method>>'
 
+db-env-vars: &db-env-vars
+  MYSQL_ROOT_PASSWORD: root
+  MYSQL_DATABASE: default
+  MYSQL_USER: user
+  MYSQL_PASSWORD: user
+
+php-version: &php-version
+  type: string
+  default: '7.4'
+db-version: &db-version
+  type: string
+  default: '10.4'
+redis-version: &redis-version
+  type: string
+  default: '5-alpine'
+solr-version: &solr-version
+  type: string
+  default: '8-slim'
+memcache-version: &memcache-version
+  type: string
+  default: 'alpine'
+
 ###########
 ### Pipeline Configuration
 ###########
@@ -268,6 +290,8 @@ orbs:
               path: <<parameters.path>>
               hook: 'start'
               steps:
+                - run-setup:
+                    site-hosting: <<parameters.site-hosting>>
                 - start-php-server:
                     path: <<parameters.path>>
                     docroot: <<parameters.docroot>>
@@ -295,10 +319,10 @@ orbs:
               steps: <<parameters.push>>
               # To DO: Run command to Create PR
 
-
       #############
       ## Clear Cache on Site
       #############
+
       clear-cache-drush:
         parameters:
           cms: *cms
@@ -574,6 +598,23 @@ orbs:
                 - generic-pull-db: *params
 
       #############
+      ## Hosting Setup
+      #############
+
+      run-setup:
+        parameters:
+          site-hosting: *site-hosting
+        steps:
+          - when:
+              conditional:
+                equal: ["pantheon", <<parameters.site-hosting>>]
+              steps:
+                - run:
+                    name: Link Config
+                    command: |
+                      ln -sf ~/project/config/pantheon/pantheon.ini /etc/php/7.4/cli/conf.d/pantheon.ini
+
+      #############
       ## Update CMS
       ############# 
 
@@ -630,26 +671,67 @@ orbs:
 
     executors:
         php-mysql:
+          parameters:
+            php-version: *php-version
+            db-version:
+              <<: *db-version
+              default: '5.7'
           docker:
-            - image: cimg/php:7.4
-        acquia:
-          docker:
-            - image: cimg/php:7.4
-        pantheon:
-          docker:
-            - image: cimg/php:7.4
-            - image: circleci/redis:5-alpine
-              name: redis
-            - image: mariadb:10.4
+            - image: cimg/php:<<parameters.php-version>>
+            - image: mysql:<<parameters.db-version>>
               name: db
-              environment:
-                MYSQL_ROOT_PASSWORD: root
-                MYSQL_DATABASE: default
-                MYSQL_USER: user
-                MYSQL_PASSWORD: user
-        wpengine:
+              environment: *db-env-vars
+        acquia:
+          parameters:
+            php-version: *php-version
+            db-version:
+              <<: *db-version
+              default: '5.7'
+            memcache-version: *memcache-version
           docker:
-            - image: cimg/php:7.4 
+            - image: cimg/php:<<parameters.php-version>>
+            - image: mysql:<<parameters.db-version>>
+              name: db
+              environment: *db-env-vars
+            - image: memcached:<<parameters.memcache-version>>
+              name: memcached
+        pantheon:
+          parameters:
+            php-version: *php-version
+            db-version: 
+              <<: *db-version
+            redis-version: *redis-version
+            solr-version: *solr-version
+          docker:
+            - image: cimg/php:<<parameters.php-version>>
+              environment:
+                DB_HOST: db
+                DB_PORT: 3306
+                DB_NAME: default
+                DB_USER: user
+                DB_PASS: user
+                CACHE_HOST: redis
+                CACHE_PORT: 6379
+                INDEX_HOST: solr
+                INDEX_PORT: 8983
+            - image: circleci/redis:<<parameters.redis-version>>
+              name: redis
+            - image: mariadb:<<parameters.db-version>>
+              name: db
+              environment: *db-env-vars
+            - image: solr:<<parameters.solr-version>>
+              name: solr
+        wpengine:
+          parameters:
+            php-version: *php-version
+            db-version:
+              <<: *db-version
+              default: '5.7'
+          docker:
+            - image: cimg/php:<<parameters.php-version>>
+            - image: mysql:<<parameters.db-version>>
+              name: db
+              environment: *db-env-vars
 
 ###########
 ### Jobs
