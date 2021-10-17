@@ -610,6 +610,12 @@ orbs:
                 equal: ["pantheon", <<parameters.site-hosting>>]
               steps:
                 - run:
+                    name: Install PHP Packages
+                    command: |
+                      apt update
+                      apt install -y \
+                        php7.4-redis
+                - run:
                     name: Link Config
                     command: |
                       sudo ln -sf ${HOME}/project/config/pantheon/pantheon.ini /etc/php/7.4/cli/conf.d/pantheon.ini
