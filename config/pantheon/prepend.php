@@ -7,7 +7,7 @@ define('PANTHEON_DATABASE_HOST', getenv('DB_HOST'));
 define('PANTHEON_DATABASE_PORT', getenv('DB_PORT'));
 define('PANTHEON_DATABASE_USERNAME', getenv('DB_USER'));
 define('PANTHEON_DATABASE_PASSWORD', getenv('DB_PASS'));
-define('PANTHEON_DATABASE_DATABASE', getenv('DB_NAME');
+define('PANTHEON_DATABASE_DATABASE', getenv('DB_NAME'));
 define('PANTHEON_DATABASE_PREFIX', '');
 
 define('PANTHEON_REDIS_HOST', getenv('CACHE_SERVER'));
