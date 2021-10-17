@@ -410,6 +410,14 @@ orbs:
           path: *path
         steps:
           - run:
+              name: Composer Clear Cache
+              command: composer clearcache
+              path: <<parameters.path>>
+          - run:
+              name: Delete Vedor Directory
+              command: rm -rf vendor
+              path: <<parameters.path>>
+          - run:
               name: Run Composer Update
               command: composer update -W --optimize-autoloader
               path: <<parameters.path>>
