@@ -10,7 +10,7 @@ define('PANTHEON_DATABASE_PASSWORD', getenv('DB_PASS'));
 define('PANTHEON_DATABASE_DATABASE', getenv('DB_NAME'));
 define('PANTHEON_DATABASE_PREFIX', '');
 
-define('PANTHEON_REDIS_HOST', getenv('CACHE_SERVER'));
+define('PANTHEON_REDIS_HOST', getenv('CACHE_HOST'));
 define('PANTHEON_REDIS_PORT', getenv('CACHE_PORT'));
 define('PANTHEON_REDIS_PASSWORD', getenv('CACHE_PASSWORD'));
 define('PANTHEON_INDEX_HOST', getenv('INDEX_HOST'));
