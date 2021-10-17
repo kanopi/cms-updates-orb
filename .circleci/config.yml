@@ -312,7 +312,11 @@ orbs:
           - run-step:
               path: <<parameters.path>>
               hook: 'commit'
-              steps: <<parameters.commit>>
+              steps:
+                - run:
+                    name: Git Status
+                    path: <<parameters.path>>
+                    command: git status
           - run-step:
               path: <<parameters.path>>
               hook: 'push'
