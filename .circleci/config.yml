@@ -606,7 +606,7 @@ orbs:
           site-hosting: *site-hosting
         steps:
           - when:
-              conditional:
+              condition:
                 equal: ["pantheon", <<parameters.site-hosting>>]
               steps:
                 - run:
