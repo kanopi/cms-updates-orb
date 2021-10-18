@@ -477,7 +477,7 @@ orbs:
               path: <<parameters.path>>/<<parameters.docroot>>
           - run:
               name: Run Diff Report
-              command: ~/project/versions diff drush /tmp/output.md /tmp/before_update.json /tmp/after_update.json
+              command: ~/config/versions diff drush /tmp/output.md /tmp/before_update.json /tmp/after_update.json
 
       ## Run Update with WPCLI
       run-update-wpcli:
@@ -499,7 +499,7 @@ orbs:
               path: <<parameters.path>>/<<parameters.docroot>>
           - run:
               name: Run Diff Report
-              command: ~/project/versions diff wpcli /tmp/output.md /tmp/before_update.json /tmp/after_update.json
+              command: ~/config/versions diff wpcli /tmp/output.md /tmp/before_update.json /tmp/after_update.json
 
       ## Run Update with Composer
       run-update-composer:
@@ -528,7 +528,7 @@ orbs:
               path: <<parameters.path>>
           - run:
               name: Run Diff Report
-              command: ~/project/versions diff composer /tmp/output.md /tmp/before_update.json /tmp/after_update.json
+              command: ~/config/versions diff composer /tmp/output.md /tmp/before_update.json /tmp/after_update.json
 
       ## Run Update Steps
       run-update:
