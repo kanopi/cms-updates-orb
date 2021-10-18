@@ -281,6 +281,11 @@ orbs:
               hook: 'checkout'
               steps:
                 - run:
+                    name: Set Up Author
+                    command: |
+                      git config --global user.email "code@kanopistudios.com"
+                      git config --global user.name "Kanopi Code"
+                - run:
                     name: Temp Fix for SSH Key
                     command: |
                       echo 'IdentityFile ~/.ssh/development_key' >> ~/.ssh/config
@@ -296,9 +301,7 @@ orbs:
                           command: git clone <<parameters.repo>> <<parameters.path>>
                 - run:
                     name: Checkout Update Branch
-                    command: |
-                      pwd
-                      git checkout -B <<parameters.update-branch>>
+                    command: git checkout -B <<parameters.update-branch>>
                     path: <<parameters.path>>
                 - run:
                     name: Checkout Branch to Main Branch
@@ -344,9 +347,6 @@ orbs:
                         echo "No updates found stopping build" 
                         circleci-agent step halt
                       fi
-
-                      git config --global user.email "code@kanopistudios.com"
-                      git config --global user.name "Kanopi Code"
                 - run:
                     name: Git Add
                     command: git add .
