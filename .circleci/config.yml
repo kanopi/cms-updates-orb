@@ -191,7 +191,8 @@ orbs:
         parameters:
           cms: *cms
         steps:
-          - ci-tools/install-github-cli
+          - ci-tools/install-github-cli:
+              version: '2.1.0'
           - when:
               condition:
                 or:
