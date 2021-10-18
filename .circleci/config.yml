@@ -223,27 +223,6 @@ orbs:
                 fi
               path: <<parameters.path>>      
 
-      ## Checkout Project
-      checkout-project:
-        description: >
-          Used for checking out the project
-        parameters:
-          repo: *repo
-          path: *path
-          update-branch: *update-branch
-        steps:
-          - run:
-              name: Temp Fix for SSH Key
-              command: |
-                echo 'IdentityFile ~/.ssh/development_key' >> ~/.ssh/config
-          - run:
-              name: Checkout Project
-              command: git clone <<parameters.repo>> <<parameters.path>>
-          - run:
-              name: Checkout Update Branch
-              command: git checkout -B <<parameters.update-branch>>
-              path: <<parameters.path>>
-
       ## Run Step
       run-step:
         description: >
@@ -288,10 +267,21 @@ orbs:
               path: <<parameters.path>>
               hook: 'checkout'
               steps:
-                - checkout-project:
-                    repo: <<parameters.repo>>
+                - run:
+                    name: Temp Fix for SSH Key
+                    command: |
+                      echo 'IdentityFile ~/.ssh/development_key' >> ~/.ssh/config
+                - run:
+                    name: Checkout Project
+                    command: git clone <<parameters.repo>> <<parameters.path>>
+                - run:
+                    name: Checkout Update Branch
+                    command: git checkout -B <<parameters.update-branch>>
                     path: <<parameters.path>>
-                    update-branch: <<parameters.update-branch>>
+                - run:
+                    name: Checkout Branch to Main Branch
+                    command: git reset --hard origin/<<parameters.pr-branch>>
+                    path: <<parameters.path>>
           - run-step:
               path: <<parameters.path>>
               hook: 'start'
@@ -343,26 +333,34 @@ orbs:
                     name: Git Commit
                     command: git commit -m "<<parameters.update-message>>"
                     path: <<parameters.path>>
+          # Create Task in Teamwork
+          # Create Entry
           - run-step:
               path: <<parameters.path>>
               hook: 'push'
               steps:
                 - run:
-                    name: Push
-                    command: git push origin <<parameters.update-branch>>
+                    name: Push to Github
+                    command: git push -f origin <<parameters.update-branch>>
                     path: <<parameters.path>>
           - run-step:
               path: <<parameters.path>>
               hook: 'create-pr'
               steps:
                 - run:
-                    name: Create PR In Github
+                    name: Create/Update PR In Github
                     path: <<parameters.path>>
                     command: |
-                      gh pr create \
-                        --base <<parameters.pr-branch>> \
-                        --title "Automated Updates" \
-                        --body-file /tmp/output.md
+                      ID=$(gh pr list --head <<parameters.pr-branch>> --json 'number' --jq '.[].number')
+                      if [[ "${ID}" == "" ]]; then
+                        gh pr create \
+                          --base <<parameters.pr-branch>> \
+                          --title "Automated Updates" \
+                          --body-file /tmp/output.md
+                      else
+                        gh pr edit ${ID} \
+                          --body-file /tmp/output.md
+                      fi
       #############
       ## Clear Cache on Site
       #############
