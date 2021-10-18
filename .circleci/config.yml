@@ -350,6 +350,7 @@ orbs:
                 - run:
                     name: Push
                     command: git push origin <<parameters.update-branch>>
+                    path: <<parameters.path>>
           - run-step:
               path: <<parameters.path>>
               hook: 'create-pr'
