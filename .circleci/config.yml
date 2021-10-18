@@ -17,6 +17,7 @@ db-type: &db-type
   type: string
 docroot: &docroot
   type: string
+  default: '.'
 site-hosting: &site-hosting
   type: string
 site-id: &site-id
@@ -331,6 +332,7 @@ orbs:
         parameters:
           cms: *cms
           path: *path
+          docroot: *docroot
         steps:
           - when:
               condition:
@@ -339,7 +341,7 @@ orbs:
                 - run:
                     name: Drush Clear Cache
                     command: drush cc all
-                    path: <<parameters.path>>
+                    path: <<parameters.path>>/<<parameters.docroot>>
           - unless:
               condition:
                 equal: ["drupal7", <<parameters.cms>>]
@@ -347,25 +349,27 @@ orbs:
                 - run:
                     name: Drush Cache Rebuild
                     command: drush cr
-                    path: <<parameters.path>>
+                    path: <<parameters.path>>/<<parameters.docroot>>
 
       clear-cache-wpcli:
         parameters:
           path: *path
+          docroot: *docroot
         steps:
           - run:
               name: WPCLI Clear Cache
               command: wp cache clear
-              path: <<parameters.path>>
+              path: <<parameters.path>>/<<parameters.docroot>>
           - run:
               name: WPCLI Transient Delete
               command: wp transient delete --all
-              path: <<parameters.path>>
+              path: <<parameters.path>>/<<parameters.docroot>>
 
       clear-cache:
         parameters:
           cms: *cms
           path: *path
+          docroot: *docroot
         steps:
           - when:
               condition:
@@ -377,12 +381,14 @@ orbs:
                 - clear-cache-drush:
                     cms: <<parameters.cms>>
                     path: <<parameters.path>>
+                    docroot: <<parameters.docroot>>
           - when:
               condition:
                 equal: ["wordpress", <<parameters.cms>>]
               steps:
                 - clear-cache-wpcli:
                     path: <<parameters.path>>
+                    docroot: <<parameters.docroot>>
 
       #############
       ## Run Updates using a specific Method
@@ -392,27 +398,56 @@ orbs:
       run-update-drush:
         parameters:
           path: *path
+          docroot: *docroot
         steps:
+          - run:
+              name: Export Package List Before Update
+              command: drush pm-list --format=json --status=enabled > /tmp/before_update_drush.json 
+              path: <<parameters.path>>/<<parameters.docroot>>
           - run:
               name: Run Drush Update
               command: drush up -y
-              path: <<parameters.path>>
+              path: <<parameters.path>>/<<parameters.docroot>>
+          - run:
+              name: Export Package List After Update
+              command: drush pm-list --format=json --status=enabled > /tmp/after_update_drush.json 
+              path: <<parameters.path>>/<<parameters.docroot>>
+          - run:
+              name: Run Diff Report
+              command: ~/project/versions diff drush /tmp/output.md /tmp/before_update_drush.json /tmp/after_update_drush.json
+          - store_artifacts:
+              path: /tmp
 
       ## Run Update with WPCLI
       run-update-wpcli:
         parameters:
           path: *path
+          docroot: *docroot
         steps:
+          - run:
+              name: Export Package List Before Update
+              command: wp plugin list --status=active --format=json > /tmp/before_update_wpcli.json 
+              path: <<parameters.path>>/<<parameters.docroot>>
           - run:
               name: Run WPCLI Update
               command: wp 
-              path: <<parameters.path>>
+              path: <<parameters.path>>/<<parameters.docroot>>
+          - run:
+              name: Export Package List Before Update
+              command: wp plugin list --status=active --format=json > /tmp/after_update_wpcli.json 
+              path: <<parameters.path>>/<<parameters.docroot>>
+          - store_artifacts:
+              path: /tmp
 
       ## Run Update with Composer
       run-update-composer:
         parameters:
           path: *path
         steps:
+          - run:
+              name: Export Package List Before Update
+              command: composer show -i -f json > /tmp/before_update_composer.json 
+              path: <<parameters.path>>          
           - run:
               name: Composer Clear Cache
               command: composer clearcache
@@ -425,6 +460,15 @@ orbs:
               name: Run Composer Update
               command: composer update -W --optimize-autoloader
               path: <<parameters.path>>
+          - run:
+              name: Export Package List After Update
+              command: composer show -i -f json > /tmp/after_update_composer.json 
+              path: <<parameters.path>>
+          - run:
+              name: Run Diff Report
+              command: ~/project/versions diff composer /tmp/output.md /tmp/before_update_composer.json /tmp/after_update_composer.json
+          - store_artifacts:
+              path: /tmp
 
       ## Run Update Steps
       run-update:
@@ -432,6 +476,7 @@ orbs:
           cms: *cms
           method: *method
           path: *path
+          docroot: *docroot
         steps:
           - when:
               condition:
@@ -440,11 +485,14 @@ orbs:
                 - clear-cache-drush:
                     path: <<parameters.path>>
                     cms: <<parameters.cms>>
+                    docroot: <<parameters.docroot>>
                 - run-update-drush:
                     path: <<parameters.path>>
+                    docroot: <<parameters.docroot>>
                 - clear-cache-drush:
                     path: <<parameters.path>>
                     cms: <<parameters.cms>>
+                    docroot: <<parameters.docroot>>
           - when:
               condition:
                 equal: ["composer", <<parameters.method>>]
@@ -460,13 +508,13 @@ orbs:
                     condition:
                       or:
                         - equal: ["drupal", <<parameters.cms>>]
-                        - equal: ["drupal7", <<parameters.cms>>]
                         - equal: ["drupal8", <<parameters.cms>>]
+                        - equal: ["drupal9", <<parameters.cms>>]
                     steps:
                       - run:
                           name: Drush Export 
                           command: drush cex -y
-                          path: <<parameters.path>>
+                          path: <<parameters.path>>/<<parameters.docroot>>
                 - clear-cache:
                     path: <<parameters.path>>
                     cms: <<parameters.cms>>
@@ -476,10 +524,13 @@ orbs:
               steps:
                 - clear-cache-wpcli:
                     path: <<parameters.path>>
+                    docroot: <<parameters.docroot>>
                 - run-update-wpcli:
                     path: <<parameters.path>>
+                    docroot: <<parameters.docroot>>
                 - clear-cache-wpcli:
                     path: <<parameters.path>>
+                    docroot: <<parameters.docroot>>
 
       #############
       ## Pull Database From Host
