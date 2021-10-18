@@ -332,6 +332,9 @@ orbs:
                         echo "No updates found stopping build" 
                         circleci-agent step halt
                       fi
+
+                      git config --global user.email "code@kanopistudios.com"
+                      git config --global user.name "Kanopi Code"
                 - run:
                     name: Git Add
                     command: git add .
