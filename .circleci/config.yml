@@ -34,7 +34,7 @@ update-branch: &update-branch
   default: "feature/updates"
 path: &path
   type: string
-  default: "project-update"
+  default: "$HOME/project-update"
 update: &update
   type: steps
   default: []
@@ -65,6 +65,9 @@ method: &method
 update-message: &update-message
   type: string
   default: 'Automated Updated'
+orb-version: &orb-version
+  type: boolean
+  default: false
 
 default-params: &default-params
   site: *site
@@ -80,7 +83,9 @@ default-params: &default-params
   site-env: *site-env
   method: *method
   update-message: *update-message
+  orb-version: *orb-version
 
+# Param Values that are used throughout the Orb
 params: &params
   path: '<<parameters.path>>'
   site: '<<parameters.site>>'
@@ -95,8 +100,12 @@ params: &params
   site-env: '<<parameters.site-env>>'
   method: '<<parameters.method>>'
   update-message: '<<parameters.update-message>>'
+  orb-version: <<parameters.orb-version>>
 
+# Param Values that are fed from the Pipeline
+# Submitted through a POST to create a new pipeline
 pipeline-params: &pipeline-params
+  executor: '<<pipeline.parameters.executor>>'
   site: '<<pipeline.parameters.site>>'
   cms: '<<pipeline.parameters.cms>>'
   repo: '<<pipeline.parameters.repo>>'
@@ -141,7 +150,7 @@ parameters:
     default: true
   executor: 
     <<: *executor
-    default: 'custom/pantheon'
+    default: 'pantheon'
   site:
     <<: *site
     default: 'coit-8'
@@ -175,6 +184,9 @@ parameters:
   method:
     <<: *method
     default: 'composer'
+  orb-version:
+    <<: *orb-version
+    default: false
 
 ###########
 ### Custom Orbs
@@ -272,9 +284,16 @@ orbs:
                     name: Temp Fix for SSH Key
                     command: |
                       echo 'IdentityFile ~/.ssh/development_key' >> ~/.ssh/config
-                - run:
-                    name: Checkout Project
-                    command: git clone <<parameters.repo>> <<parameters.path>>
+                - when:
+                    condition: <<parameters.orb-version>>
+                    steps:
+                      - checkout
+                - unless:
+                    condition: <<parameters.orb-version>>
+                    steps:
+                      - run:
+                          name: Checkout Project
+                          command: git clone <<parameters.repo>> <<parameters.path>>
                 - run:
                     name: Checkout Update Branch
                     command: git checkout -B <<parameters.update-branch>>
@@ -362,10 +381,12 @@ orbs:
                         gh pr edit ${ID} \
                           --body-file /tmp/output.md
                       fi
+
       #############
       ## Clear Cache on Site
       #############
 
+      ## Run Cache Clear with Drush
       clear-cache-drush:
         parameters:
           cms: *cms
@@ -389,6 +410,7 @@ orbs:
                     command: drush cr
                     path: <<parameters.path>>/<<parameters.docroot>>
 
+      ## Run Cache Clear with WPCLI
       clear-cache-wpcli:
         parameters:
           path: *path
@@ -403,6 +425,7 @@ orbs:
               command: wp transient delete --all
               path: <<parameters.path>>/<<parameters.docroot>>
 
+      ## Run Cache Clear
       clear-cache:
         parameters:
           cms: *cms
@@ -718,7 +741,7 @@ orbs:
                 - run:
                     name: Link Config
                     command: |
-                      sudo ln -sf ${HOME}/project/config/pantheon/pantheon.ini /etc/php/7.4/cli/conf.d/pantheon.ini
+                      sudo ln -sf ${HOME}/config/pantheon/pantheon.ini /etc/php/7.4/cli/conf.d/pantheon.ini
 
       #############
       ## Update CMS
@@ -755,7 +778,12 @@ orbs:
         parameters: *default-params
         steps:
           - ci-tools/copy-ssh-key
-          - checkout
+          - run:
+              name: Install Extra Config
+              command: |
+                if [[ ! -d $HOME/config ]]; then
+                  echo "TBD Download config"
+                fi
           - when:
               condition:
                 equal: ["drupal7", <<parameters.cms>>]
@@ -774,6 +802,16 @@ orbs:
                 equal: ["wordpress", <<parameters.cms>>]
               steps:
                 - update_wordpress: *params
+
+    jobs:
+      run_cms_updates:
+        executor: <<parameters.executor>>
+        parameters:
+          <<: *default-params
+          executor: *executor
+        steps:
+          - run-updates:
+              <<: *params
 
     executors:
         php-mysql:
@@ -840,16 +878,6 @@ orbs:
               environment: *db-env-vars
 
 ###########
-### Jobs
-###########
-jobs:
-  run_cms_updates:
-    executor: <<pipeline.parameters.executor>>
-    working_directory: ~/project
-    steps:
-      - custom/run-updates: *pipeline-params
-
-###########
 ### Workflows
 ###########
 workflows:
@@ -857,5 +885,10 @@ workflows:
   cms_update_workflows:
     when: << pipeline.parameters.run_update >>
     jobs:
-      - run_cms_updates:
+      - custom/run_cms_updates:
+          <<: *pipeline-params
+          orb-version: false
+          pre-steps:
+            - checkout:
+                path: $HOME/config
           context: kanopi-code
