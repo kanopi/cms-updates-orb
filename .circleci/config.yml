@@ -351,7 +351,7 @@ orbs:
                     name: Create/Update PR In Github
                     path: <<parameters.path>>
                     command: |
-                      ID=$(gh pr list --head <<parameters.pr-branch>> --json 'number' --jq '.[].number')
+                      ID=$(gh pr list --head <<parameters.update-branch>> --json 'number' --jq '.[].number')
                       if [[ "${ID}" == "" ]]; then
                         gh pr create \
                           --base <<parameters.pr-branch>> \
