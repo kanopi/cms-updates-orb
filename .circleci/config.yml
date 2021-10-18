@@ -34,7 +34,7 @@ update-branch: &update-branch
   default: "feature/updates"
 path: &path
   type: string
-  default: "$HOME/project-update"
+  default: "/home/circleci/project-update"
 update: &update
   type: steps
   default: []
