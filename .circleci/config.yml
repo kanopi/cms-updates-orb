@@ -429,8 +429,8 @@ orbs:
               command: wp plugin list --status=active --format=json > /tmp/before_update_wpcli.json 
               path: <<parameters.path>>/<<parameters.docroot>>
           - run:
-              name: Run WPCLI Update
-              command: wp 
+              name: Run WPCLI Update on All Plugins
+              command: wp plugin update --all
               path: <<parameters.path>>/<<parameters.docroot>>
           - run:
               name: Export Package List Before Update
