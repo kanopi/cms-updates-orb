@@ -892,5 +892,5 @@ workflows:
           orb-version: false
           pre-steps:
             - checkout:
-                path: $HOME/config
+                path: /home/circleci/config
           context: kanopi-code
