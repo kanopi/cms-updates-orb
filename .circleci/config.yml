@@ -296,7 +296,9 @@ orbs:
                           command: git clone <<parameters.repo>> <<parameters.path>>
                 - run:
                     name: Checkout Update Branch
-                    command: git checkout -B <<parameters.update-branch>>
+                    command: |
+                      pwd
+                      git checkout -B <<parameters.update-branch>>
                     path: <<parameters.path>>
                 - run:
                     name: Checkout Branch to Main Branch
