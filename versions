@@ -1,0 +1,246 @@
+#!/usr/bin/php
+<?php
+
+/*
+ * The following script will review the Package Differences 
+ * Drush, WPCLI, or Composer and create a markup table to 
+ * identify the differences.
+ */
+
+ /**
+  * Parse and Return File Data.
+  *
+  * @param [type] $file_name
+  * @return void
+  */
+function parse_file_data($file_name) {
+    if (empty($file_name)) {
+        die(
+            sprintf('File cannot be empty')
+        );
+    }
+
+    if (!file_exists($file_name)) {
+        die(
+            sprintf("File %s not available", $file_name)
+        );
+    }
+
+    $output = json_decode(
+        file_get_contents($file_name), 
+        true
+    );
+
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        die(
+            sprintf("File %s cannot be json parsed", $file_name)
+        );
+    }
+
+    return $output;
+}
+
+/**
+ * Build Markup Table
+ *
+ * @param [type] $headers
+ * @param [type] $cols
+ * @param [type] $info
+ * @return void
+ */
+function build_version_table($headers, $cols, $info) {
+    $str = '';
+
+    if (sizeof($info) > 0) {
+        $headers_seperator = $headers;
+        array_walk($headers_seperator, function(&$header) {
+            $header = str_pad('', strlen($header), '-');
+        });
+        $str .= implode(' | ', $headers) . PHP_EOL;
+        $str .= implode('-|-', $headers_seperator) . PHP_EOL;
+
+        foreach ($info AS $package) {
+            $data = $package;
+            if (!empty($cols)) {
+                $data = [];
+                foreach ($cols AS $col) {
+                    $data[] = $package[$col] ?? '';
+                }
+            }
+
+            $str .= implode(" | ", $data) . PHP_EOL;
+        }
+    }
+
+    return $str;
+}
+
+/**
+ * Combine new and old data
+ *
+ * @param [type] $old_file_data
+ * @param [type] $new_file_data
+ * @param string $name
+ * @param string $version
+ * @return void
+ */
+function merge_data($old_file_data, $new_file_data, $name = 'name', $version = 'version') {
+    $versions = [];
+
+    array_walk($old_file_data, function(&$item, $key){
+        $item['machine_name'] = $key;
+    });
+
+    foreach ($old_file_data AS $package) {
+        if (!isset($versions[$package[$name]])){
+            $package['old_version'] = $package[$version];
+            unset($package[$version]);
+            $package['status'] = 'Removed';
+            $versions[$package[$name]] = $package;
+        }
+    }
+
+    array_walk($new_file_data, function(&$item, $key){
+        $item['machine_name'] = $key;
+    });
+
+    foreach ($new_file_data AS $package) {
+        if (!isset($versions[$package[$name]])){
+            $package['new_version'] = $package[$version];
+            unset($package[$version]);
+            $package['status'] = 'Installed';
+            $versions[$package[$name]] = $package;
+        } else {
+            $versions[$package[$name]]['new_version'] = $package[$version];
+
+            if ($versions[$package[$name]]['new_version'] == $versions[$package[$name]]['old_version']) {
+                $versions[$package[$name]]['status'] = 'Same';
+            } elseif (empty($versions[$package[$name]]['new_version'])) {
+                $versions[$package[$name]]['status'] = 'Removed';
+            } elseif ($versions[$package[$name]]['new_version'] != $versions[$package[$name]]['old_version']) {
+                $versions[$package[$name]]['status'] = 'Updated';
+            }
+        }
+    }
+
+    $versions = array_filter($versions, function($package)  {
+        return !($package['status'] == 'Same');
+    });
+
+    return $versions;
+}
+
+/**
+ * Undocumented function
+ *
+ * @param [type] $title
+ * @param [type] $description
+ * @param [type] $headers
+ * @param [type] $cols
+ * @param [type] $versions
+ * @param [type] $output_file_name
+ * @return void
+ */
+function write_file($title, $description, $headers, $cols, $versions, $output_file_name) {
+    $file_put_flags = 0;
+    
+    $version_table = '';
+    
+    if (file_exists($output_file_name)) {
+        $file_put_flags = FILE_APPEND;    
+        $version_table = PHP_EOL . '-----------------------------------------------------------' . PHP_EOL . PHP_EOL;
+    }
+
+    $version_table = [
+        $title,
+        $description,
+        build_version_table($headers, $cols, $versions),
+    ];
+
+    $version_table = array_filter($version_table, function($item) {
+        return !empty(trim($item));
+    });
+
+    $output_table = implode(PHP_EOL . PHP_EOL, $version_table);
+    
+    file_put_contents($output_file_name, $output_table, $file_put_flags);
+}
+
+/**
+ * Print the help.
+ */
+function print_help($script) {
+    print <<<EOL
+$script [action] [type] [output file name] [before update] [after update]
+
+Example:
+$script diff composer /tmp/output.md ./before_update.json ./after_update.json
+
+EOL;
+}
+
+$args = $argv;
+list( $script, $action ) = $args;
+array_shift($args);
+array_shift($args);
+
+switch ($action) {
+    case 'diff':
+        if ($argc !== 6) {
+            print_help($script);
+            die;
+        }
+
+        list ($type, $output_file_name, $old_file, $new_file) = $args;
+
+        // Review Old File
+        $old_file_data = parse_file_data( $old_file );
+
+        // Review New File
+        $new_file_data = parse_file_data( $new_file );
+
+        /**
+         * Default Configuration
+         */
+        $versions = [];
+        $title = '';
+        $description = '';
+        $headers = [];
+        $cols = [];
+
+        switch($type) {
+            case 'wpcli':
+                $title = '# WPCLI Package Updates';
+                $headers = ['Name', 'Old Version', 'New Version', 'Status'];
+                $cols = ['name', 'old_version', 'new_verison', 'status'];
+
+                $versions = merge_data($old_file_data, $new_file_data);
+                break;
+
+            case 'composer':
+                $title = '# Composer Package Updates';
+                $description = 'The following packages have changed in some way. Please note the changes.';
+                $headers = ['Package', 'Old Version', 'New Version', 'Status', 'Description'];
+                $cols = ['name', 'old_version', 'new_version', 'status', 'description'];
+
+                $versions = merge_data($old_file_data['installed'], $new_file_data['installed']);
+                break;
+
+            case 'drush':
+                $title = '# Drush Package Updates';
+                $headers = ['Name', 'Old Version', 'New Version', 'Status'];
+                $cols = ['name', 'old_version', 'new_version', 'status'];
+                $versions = merge_data($old_file_data, $new_file_data, 'machine_name');
+                break;
+            default:
+                die(
+                    sprintf('Type %s not supported', $type)
+                );
+                break;
+        }
+
+        write_file($title, $description, $headers, $cols, $versions, $output_file_name);
+        break;
+    default:
+        print_help($script);
+}
