@@ -449,7 +449,7 @@ orbs:
         steps:
           - run:
               name: WPCLI Clear Cache
-              command: wp cache clear
+              command: wp cache flush
               path: <<parameters.path>>/<<parameters.docroot>>
           - run:
               name: WPCLI Transient Delete
