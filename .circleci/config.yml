@@ -1022,12 +1022,18 @@ workflows:
   version: 2
   test:
     jobs:
-      - coit-8
-      - coit-spot-removal
-      - mises
-      - mises-api
-      - kanopi-2019
-      - diebenkorn
+      - coit-8:
+          context: kanopi-code
+      - coit-spot-removal:
+          context: kanopi-code
+      - mises:
+          context: kanopi-code
+      - mises-api:
+          context: kanopi-code
+      - kanopi-2019:
+          context: kanopi-code
+      - diebenkorn:
+          context: kanopi-code
 # @Todo: Move from Job to Orb Job
 #   cms_update_workflows:
 #     when: << pipeline.parameters.run_update >>
