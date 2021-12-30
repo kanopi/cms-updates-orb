@@ -1,7 +1,7 @@
 {
     "coit-8": {
         "executor": "custom/pantheon",
-        "cms": "drupal8",
+        "cms": "drupal9",
         "repo": "git@github.com:kanopi/coit-8",
         "pr-branch": "main",
         "db": "pantheon",
@@ -9,5 +9,49 @@
         "site-hosting": "pantheon",
         "site-site": "coit-8",
         "site-env": "live"
+    },
+    "mises-api": {
+        "executor": "custom/pantheon",
+        "cms": "drupal9",
+        "repo": "git@github.com:kanopi/mises-api",
+        "pr-branch": "main",
+        "db": "pantheon",
+        "docroot": "web",
+        "site-hosting": "pantheon",
+        "site-site": "mises-api",
+        "site-env": "live"
+    },
+    "coit-spot-removal": {
+        "executor": "custom/pantheon",
+        "cms": "drupal7",
+        "repo": "git@github.com:kanopi/coit-spot-removal",
+        "pr-branch": "master",
+        "db": "pantheon",
+        "docroot": ".",
+        "site-hosting": "pantheon",
+        "site-site": "coit-spot-removal",
+        "site-env": "live"        
+    },
+    "mises": {
+        "executor": "custom/pantheon",
+        "cms": "drupal7",
+        "repo": "git@github.com:kanopi/mises",
+        "pr-branch": "main",
+        "db": "pantheon",
+        "docroot": ".",
+        "site-hosting": "pantheon",
+        "site-site": "mimses",
+        "site-env": "live"
+    },
+    "kanopi": {
+        "executor": "custom/pantheon",
+        "cms": "wordpress",
+        "repo": "git@github.com:kanopi/kanopi-2019",
+        "pr-branch": "master",
+        "db": "pantheon",
+        "docroot": "web",
+        "site-hosting": "pantheon",
+        "site-site": "kanopi-2019",
+        "site-env": "live"        
     }
 }

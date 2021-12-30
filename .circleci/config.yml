@@ -4,71 +4,112 @@ version: 2.1
 ### Reusable Variables
 ###########
 executor: &executor
+  description: "The executor to run this process for"
   type: string
 site: &site
+  description: "The name of the site being updated."
   type: string
+  default: ""
 cms: &cms
-  type: string
+  description: "Type of CMS to run updates on."
+  type: enum
+  enum: ["drupal", "drupal7", "drupal8", "drupal9", "wordpress"]
 repo: &repo
+  description: "The url to use for cloning the repo"
   type: string
 pr-branch: &pr-branch
+  description: "What is the main branch of the project that should be used."
   type: string
+  default: "main"
 db-type: &db-type
-  type: string
+  description: "What is the method for pulling the database."
+  type: enum
+  enum: ["acquia", "drush", "general", "pantheon", "wpcli", "wpengine"]
 docroot: &docroot
+  description: "Where is the DOCROOT of the project?"
   type: string
   default: '.'
 site-hosting: &site-hosting
-  type: string
+  description: "What hosting is the site using?"
+  type: enum
+  enum: ["general", "pantheon"]
 site-id: &site-id
+  description: "The site name on the remote host to pull information from"
   type: string
+  default: ""
 site-env: &site-env
+  description: "The environment on the remote host to pull information from."
   type: string
+  default: ""
 steps: &steps
+  description: "Steps executed"
   type: steps
   default: []
 hook: &hook
+  description: "The name of the hook being executed."
   type: string
 update-branch: &update-branch
+  description: "The name of the branch to run updates with."
   type: string
-  default: "feature/updates"
+  default: "cms-updates/$(date +%F)"
 path: &path
+  description: "Path to checkout the project from."
   type: string
   default: "/home/circleci/project-update"
 update: &update
-  type: steps
-  default: []
-commit: &commit
-  type: steps
-  default: []
-push: &push
+  description: "Steps to take as part of the update process."
   type: steps
   default: []
 db-file: &db-file
+  description: "Where to store the database file when exported from the host."
   type: string
   default: "/tmp/db.sql.gz"
 db-host: &db-host
+  description: "The hostname for accessing the database within CircleCI."
   type: string
   default: 'db'
 db-user: &db-user
+  description: "The user for accessing the database within CircleCI."
   type: string
   default: 'user'
 db-pass: &db-pass
+  description: "The password for accessing the database within CircleCI."
   type: string
   default: 'user'
 db-name: &db-name
+  description: "The name of the database for accessing the database within CircleCI."
   type: string
   default: 'default'
 method: &method
-  type: string
-  default: ''
+  description: "The method used for running updates."
+  type: enum
+  enum: ["composer", "drush", "wpcli"]
 update-message: &update-message
+  description: "Commit message used for changed items."
   type: string
   default: 'Automated Updated'
 orb-version: &orb-version
+  description: "Is this running from the orb?"
   type: boolean
   default: false
+dockerhub-user: &dockerhub-user
+  description: "Dockerhub User Name"
+  type: string
+  default: "${DOCKERHUB_USER}"
+dockerhub-pass: &dockerhub-pass
+  description: "Dockerhub User Password"
+  type: string
+  default: "${DOCKERHUB_PASS}"
+git-name: &git-name
+  description: "The name to use for commits"
+  type: string
+  default: "${GIT_NAME}"
+git-email: &git-email
+  description: "The email to use for commits"
+  type: string
+  default: "${GIT_EMAIL}"
 
+# The default parameters to use for steps.
 default-params: &default-params
   site: *site
   path: *path
@@ -84,6 +125,8 @@ default-params: &default-params
   method: *method
   update-message: *update-message
   orb-version: *orb-version
+  git-name: *git-name
+  git-email: *git-email
 
 # Param Values that are used throughout the Orb
 params: &params
@@ -104,89 +147,83 @@ params: &params
 
 # Param Values that are fed from the Pipeline
 # Submitted through a POST to create a new pipeline
-pipeline-params: &pipeline-params
-  executor: '<<pipeline.parameters.executor>>'
-  site: '<<pipeline.parameters.site>>'
-  cms: '<<pipeline.parameters.cms>>'
-  repo: '<<pipeline.parameters.repo>>'
-  pr-branch: '<<pipeline.parameters.pr-branch>>'
-  db-type: '<<pipeline.parameters.db-type>>'
-  docroot: '<<pipeline.parameters.docroot>>'
-  update-branch: '<<pipeline.parameters.update-branch>>'
-  site-hosting: '<<pipeline.parameters.site-hosting>>'
-  site-id: '<<pipeline.parameters.site-id>>'
-  site-env: '<<pipeline.parameters.site-env>>'
-  method: '<<pipeline.parameters.method>>'
+# pipeline-params: &pipeline-params
+#   executor: '<<pipeline.parameters.executor>>'
+#   site: '<<pipeline.parameters.site>>'
+#   cms: '<<pipeline.parameters.cms>>'
+#   repo: '<<pipeline.parameters.repo>>'
+#   pr-branch: '<<pipeline.parameters.pr-branch>>'
+#   db-type: '<<pipeline.parameters.db-type>>'
+#   docroot: '<<pipeline.parameters.docroot>>'
+#   update-branch: '<<pipeline.parameters.update-branch>>'
+#   site-hosting: '<<pipeline.parameters.site-hosting>>'
+#   site-id: '<<pipeline.parameters.site-id>>'
+#   site-env: '<<pipeline.parameters.site-env>>'
+#   method: '<<pipeline.parameters.method>>'
 
+# Default DB Environment Variables
 db-env-vars: &db-env-vars
   MYSQL_ROOT_PASSWORD: root
   MYSQL_DATABASE: default
   MYSQL_USER: user
   MYSQL_PASSWORD: user
 
+# Stack Versions to use
 php-version: &php-version
+  description: "Tag used for PHP version. Image: cimg/php"
   type: string
   default: '7.4'
 db-version: &db-version
+  description: "Tag used for MySQL version. Image: mariadb"
   type: string
   default: '10.4'
 redis-version: &redis-version
+  description: "Tag used for Redis version. Image: redis"
   type: string
   default: '5-alpine'
 solr-version: &solr-version
+  description: "Tag used for Solr version. Image: solr"
   type: string
   default: '8-slim'
 memcache-version: &memcache-version
+  description: "Tag used for Memcache version: Image: memcached"
   type: string
   default: 'alpine'
 
 ###########
 ### Pipeline Configuration
 ###########
-parameters:
-  run_update:
-    description: 'Allow the updates to be ran.'
-    type: boolean
-    default: true
-  executor: 
-    <<: *executor
-    default: 'pantheon'
-  site:
-    <<: *site
-    default: 'coit-8'
-  cms:
-    <<: *cms
-    default: 'drupal8'
-  repo:
-    <<: *repo
-    default: 'git@github.com:kanopi/coit-8'
-  pr-branch:
-    <<: *pr-branch
-    default: 'master'
-  db-type:
-    <<: *db-type
-    default: 'pantheon'
-  docroot: 
-    <<: *docroot
-    default: 'web'
-  update-branch:
-    <<: *update-branch
-    default: 'feature/updates'
-  site-hosting: 
-    <<: *site-hosting
-    default: 'pantheon'
-  site-id:
-    <<: *site-id
-    default: 'coit-main'
-  site-env: 
-    <<: *site-env
-    default: 'live'
-  method:
-    <<: *method
-    default: 'composer'
-  orb-version:
-    <<: *orb-version
-    default: false
+# parameters:
+#   run_update:
+#     description: 'Allow the updates to be ran.'
+#     type: boolean
+#     default: true
+#   executor: 
+#     <<: *executor
+#   site:
+#     <<: *site
+#   cms:
+#     <<: *cms
+#   repo:
+#     <<: *repo
+#   pr-branch:
+#     <<: *pr-branch
+#   db-type:
+#     <<: *db-type
+#   docroot: 
+#     <<: *docroot
+#   update-branch:
+#     <<: *update-branch
+#   site-hosting: 
+#     <<: *site-hosting
+#   site-id:
+#     <<: *site-id
+#   site-env: 
+#     <<: *site-env
+#   method:
+#     <<: *method
+#   orb-version:
+#     <<: *orb-version
 
 ###########
 ### Custom Orbs
@@ -194,7 +231,7 @@ parameters:
 orbs:
   custom:
     orbs:
-      ci-tools: kanopi/ci-tools@1.7.1
+      ci-tools: kanopi/ci-tools@1.8.3
     commands:
       ## Install Tools for Specific CMS
       install-tools:
@@ -280,15 +317,6 @@ orbs:
               path: <<parameters.path>>
               hook: 'checkout'
               steps:
-                - run:
-                    name: Set Up Author
-                    command: |
-                      git config --global user.email "code@kanopistudios.com"
-                      git config --global user.name "Kanopi Code"
-                - run:
-                    name: Temp Fix for SSH Key
-                    command: |
-                      echo 'IdentityFile ~/.ssh/development_key' >> ~/.ssh/config
                 - when:
                     condition: <<parameters.orb-version>>
                     steps:
@@ -330,6 +358,7 @@ orbs:
                     cms: <<parameters.cms>>
                     path: <<parameters.path>>
                     method: <<parameters.method>>
+                    docroot: <<parameters.docroot>>
           - run-step:
               path: <<parameters.path>>
               hook: 'commit'
@@ -355,8 +384,8 @@ orbs:
                     name: Git Commit
                     command: git commit -m "<<parameters.update-message>>"
                     path: <<parameters.path>>
-          # Create Task in Teamwork
-          # Create Entry
+          # @Todo: Create Task in Teamwork
+          # @Todo: Create Entry in Harvest
           - run-step:
               path: <<parameters.path>>
               hook: 'push'
@@ -514,13 +543,14 @@ orbs:
               name: Composer Clear Cache
               command: composer clearcache
               path: <<parameters.path>>
-          - run:
-              name: Delete Vedor Directory
-              command: rm -rf vendor
-              path: <<parameters.path>>
+          # @Todo: Do I need to delete the vendor directory?
+          # - run:
+          #     name: Delete Vedor Directory
+          #     command: rm -rf vendor
+          #     path: <<parameters.path>>
           - run:
               name: Run Composer Update
-              command: composer update -W --optimize-autoloader
+              command: yes | composer update -W --optimize-autoloader || true
               path: <<parameters.path>>
           - run:
               name: Export Package List After Update
@@ -557,11 +587,18 @@ orbs:
               condition:
                 equal: ["composer", <<parameters.method>>]
               steps:
-                - ci-tools/composer-install:
+                # @Todo: Add parameters to composer install, pipe with yes
+                # - ci-tools/composer-install:
+                #     path: <<parameters.path>>
+                #     extra-args: --ansi --non-interactive
+                - run:
+                    name: Composer Install
+                    command: yes | composer install --ansi || true
                     path: <<parameters.path>>
                 - clear-cache:
                     path: <<parameters.path>>
                     cms: <<parameters.cms>>
+                    docroot: <<parameters.docroot>>
                 - run-update-composer:
                     path: <<parameters.path>>
                 - when:
@@ -611,7 +648,7 @@ orbs:
           db-name: *db-name
           token:
             type: string
-            default: "${TERMINUS_TOKEN}"
+            default: ${TERMINUS_TOKEN}
         steps:
           - ci-tools/install-terminus
           - run:
@@ -737,13 +774,13 @@ orbs:
                 - run:
                     name: Install PHP Packages
                     command: |
-                      sudo apt update
-                      sudo apt install -y \
-                        php7.4-redis
+                      sudo pecl update-channels
+                      sudo pecl install \
+                        redis
                 - run:
                     name: Link Config
                     command: |
-                      sudo ln -sf ${HOME}/config/config/pantheon/pantheon.ini /etc/php/7.4/cli/conf.d/pantheon.ini
+                      sudo ln -sf ${HOME}/config/config/pantheon/pantheon.ini /etc/php.d/pantheon.ini
 
       #############
       ## Update CMS
@@ -779,13 +816,22 @@ orbs:
           Run Site Update
         parameters: *default-params
         steps:
-          - ci-tools/copy-ssh-key
+          - ci-tools/copy-ssh-key:
+              decode-params: '-di'
           - run:
-              name: Install Extra Config
+              name: Set Up Git Author
               command: |
-                if [[ ! -d $HOME/config ]]; then
-                  echo "TBD Download config"
-                fi
+                git config --global user.email "<<parameters.git-email>>"
+                git config --global user.name "<<parameters.git-name>>"
+          # @Todo: Find a way to checkout/download
+          # - run:
+          #     name: Install Extra Config
+          #     command: |
+          #       if [[ ! -d $HOME/config ]]; then
+          #         echo "TBD Download config"
+          #       fi
+          - checkout:
+              path: ~/config
           - when:
               condition:
                 equal: ["drupal7", <<parameters.cms>>]
@@ -844,12 +890,14 @@ orbs:
         pantheon:
           parameters:
             php-version: *php-version
-            db-version: 
-              <<: *db-version
+            db-version: *db-version
             redis-version: *redis-version
             solr-version: *solr-version
           docker:
             - image: cimg/php:<<parameters.php-version>>
+              auth:
+                username: $DOCKERHUB_USER
+                password: $DOCKERHUB_PASS
               environment:
                 DB_HOST: db
                 DB_PORT: 3306
@@ -862,11 +910,20 @@ orbs:
                 INDEX_PORT: 8983
             - image: circleci/redis:<<parameters.redis-version>>
               name: redis
+              auth:
+                username: $DOCKERHUB_USER
+                password: $DOCKERHUB_PASS
             - image: mariadb:<<parameters.db-version>>
               name: db
+              auth:
+                username: $DOCKERHUB_USER
+                password: $DOCKERHUB_PASS
               environment: *db-env-vars
             - image: solr:<<parameters.solr-version>>
               name: solr
+              auth:
+                username: $DOCKERHUB_USER
+                password: $DOCKERHUB_PASS
         wpengine:
           parameters:
             php-version: *php-version
@@ -879,18 +936,105 @@ orbs:
               name: db
               environment: *db-env-vars
 
+jobs:
+  coit-8:
+    executor: "custom/pantheon"
+    steps:
+      - custom/run-updates:
+          method: "composer"
+          cms: "drupal9"
+          repo: "git@github.com:kanopi/coit-8"
+          pr-branch: "master"
+          db-type: "pantheon"
+          docroot: "web"
+          site-hosting: "pantheon"
+          site-id: "coit-main"
+          site-env: "live"
+  coit-spot-removal:
+    executor: "custom/pantheon"
+    steps:
+      - custom/run-updates:
+          method: "drush"
+          cms: "drupal7"
+          repo: "git@github.com:kanopi/coit-spot-removal"
+          pr-branch: "master"
+          db-type: "pantheon"
+          docroot: "."
+          site-hosting: "pantheon"
+          site-id: "coit-spot-removal"
+          site-env: "live"
+  mises:
+    executor: "custom/pantheon"
+    steps:
+      - custom/run-updates:
+          method: "drush"
+          cms: "drupal7"
+          repo: "git@github.com:kanopi/mises"
+          pr-branch: "master"
+          db-type: "pantheon"
+          docroot: "."
+          site-hosting: "pantheon"
+          site-id: "mises"
+          site-env: "live"
+  mises-api:
+    executor: "custom/pantheon"
+    steps:
+      - custom/run-updates:
+          method: "composer"
+          cms: "drupal9"
+          repo: "git@github.com:kanopi/mises-api"
+          pr-branch: "master"
+          db-type: "pantheon"
+          docroot: "web"
+          site-hosting: "pantheon"
+          site-id: "mises-api"
+          site-env: "live"
+  kanopi-2019:
+    executor: "custom/pantheon"
+    steps:
+      - custom/run-updates:
+          method: "composer"
+          cms: "wordpress"
+          repo: "git@github.com:kanopi/kanopi-2019"
+          pr-branch: "master"
+          db-type: "pantheon"
+          docroot: "web"
+          site-hosting: "pantheon"
+          site-id: "kanopi-2019"
+          site-env: "live"
+  diebenkorn:
+    executor: "custom/pantheon"
+    steps:
+      - custom/run-updates:
+          method: "wpcli"
+          cms: "wordpress"
+          repo: "git@github.com:kanopi/diebenkorn"
+          pr-branch: "main"
+          db-type: "pantheon"
+          docroot: "."
+          site-hosting: "pantheon"
+          site-id: "diebenkorn"
+          site-env: "live"  
 ###########
 ### Workflows
 ###########
 workflows:
   version: 2
-  cms_update_workflows:
-    when: << pipeline.parameters.run_update >>
+  test:
     jobs:
-      - custom/run_cms_updates:
-          <<: *pipeline-params
-          orb-version: false
-          pre-steps:
-            - checkout:
-                path: /home/circleci/config
-          context: kanopi-code
+      - coit-8
+      - coit-spot-removal
+      - mises
+      - mises-api
+      - kanopi-2019
+      - diebenkorn
+# @Todo: Move from Job to Orb Job
+#   cms_update_workflows:
+#     when: << pipeline.parameters.run_update >>
+#     jobs:
+#       - custom/run_cms_updates:
+#           <<: *pipeline-params
+#           pre-steps:
+#             - checkout:
+#                 path: /home/circleci/config
+#           context: kanopi-code
