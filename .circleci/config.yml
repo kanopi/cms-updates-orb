@@ -923,6 +923,8 @@ orbs:
                 CACHE_PORT: 6379
                 INDEX_HOST: solr
                 INDEX_PORT: 8983
+                # Set Timezone for PR dates
+                TZ: 'America/Los_Angeles'
             - image: circleci/redis:<<parameters.redis-version>>
               name: redis
               auth:
