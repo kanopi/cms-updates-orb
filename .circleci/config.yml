@@ -1030,7 +1030,7 @@ jobs:
           docroot: "web"
           site-hosting: "pantheon"
           site-id: "mises-api"
-          site-env: "live"
+          site-env: "dev"
   kanopi-2019:
     executor: "custom/pantheon"
     steps:
