@@ -611,10 +611,17 @@ orbs:
               condition:
                 equal: ["composer", <<parameters.method>>]
               steps:
-                - ci-tools/composer-install:
-                    version: <<parameters.composer-version>>
+                # - ci-tools/composer-install:
+                #     version: <<parameters.composer-version>>
+                #     path: <<parameters.path>>
+                #     extra-args: --ansi --no-interaction
+                - run:
+                    name: Install Composer Version
+                    command: sudo composer self-update --<<parameters.composer-version>>
+                - run:
+                    name: Composer Install
                     path: <<parameters.path>>
-                    extra-args: --ansi --no-interaction
+                    command: composer install --ansi --no-interaction
                 - clear-cache:
                     path: <<parameters.path>>
                     cms: <<parameters.cms>>
