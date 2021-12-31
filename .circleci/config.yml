@@ -610,9 +610,17 @@ orbs:
               condition:
                 equal: ["composer", <<parameters.method>>]
               steps:
+                ## Todo: Workaround currently
                 - run:
-                    name: Set to Allow Plugins
-                    command: composer global config allow-plugins true
+                    name: Composer Update
+                    command: sudo composer self-update --<<parameters.composer-version>>
+                - when:
+                    condition:
+                      equal: ["2", <<parameters.composer-version>>]
+                    steps:
+                      - run:
+                          name: Set to Allow Plugins
+                          command: composer global config allow-plugins true
                 - ci-tools/composer-install:
                     version: <<parameters.composer-version>>
                     path: <<parameters.path>>
