@@ -258,9 +258,6 @@ orbs:
           cms: *cms
           composer-version: *composer-version
         steps:
-          - run:
-              name: Update Composer
-              command: sudo composer self-update --<<parameters.composer-version>>
           - ci-tools/install-github-cli:
               version: '2.4.0'
           - when:
@@ -381,6 +378,7 @@ orbs:
                     path: <<parameters.path>>
                     method: <<parameters.method>>
                     docroot: <<parameters.docroot>>
+                    composer-version: <<parameters.composer-version>>
           - run-step:
               path: <<parameters.path>>
               hook: 'commit'
@@ -591,6 +589,7 @@ orbs:
           method: *method
           path: *path
           docroot: *docroot
+          composer-version: *composer-version
         steps:
           - when:
               condition:
@@ -612,6 +611,7 @@ orbs:
                 equal: ["composer", <<parameters.method>>]
               steps:
                 - ci-tools/composer-install:
+                    version: <<parameters.composer-version>>
                     path: <<parameters.path>>
                     extra-args: --ansi --no-interaction
                 - clear-cache:
