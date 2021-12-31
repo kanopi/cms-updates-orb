@@ -610,6 +610,9 @@ orbs:
               condition:
                 equal: ["composer", <<parameters.method>>]
               steps:
+                - run:
+                    name: Set to Allow Plugins
+                    command: composer global config allow-plugins true
                 - ci-tools/composer-install:
                     version: <<parameters.composer-version>>
                     path: <<parameters.path>>
