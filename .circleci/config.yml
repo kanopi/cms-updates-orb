@@ -108,6 +108,12 @@ git-email: &git-email
   description: "The email to use for commits"
   type: string
   default: "${GIT_EMAIL}"
+composer-version: &composer-version
+  description: "Version of composer to use. Default 2.x"
+  type: enum
+  default: ['2']
+  enum: ['1', '2']
+
 
 # The default parameters to use for steps.
 default-params: &default-params
@@ -127,6 +133,7 @@ default-params: &default-params
   orb-version: *orb-version
   git-name: *git-name
   git-email: *git-email
+  composer-version: *composer-version
 
 # Param Values that are used throughout the Orb
 params: &params
@@ -144,6 +151,7 @@ params: &params
   method: '<<parameters.method>>'
   update-message: '<<parameters.update-message>>'
   orb-version: <<parameters.orb-version>>
+  composer-version: <<parameters.composer-version>>
 
 # Param Values that are fed from the Pipeline
 # Submitted through a POST to create a new pipeline
@@ -239,9 +247,13 @@ orbs:
           Install Necessary Tools
         parameters:
           cms: *cms
+          composer-version: *composer-version
         steps:
+          - run:
+              name: Update Composer
+              command: composer self-update --<<parameters.composer--version>>
           - ci-tools/install-github-cli:
-              version: '2.1.0'
+              version: '2.4.0'
           - when:
               condition:
                 or:
@@ -313,6 +325,7 @@ orbs:
         steps:
           - install-tools:
               cms: <<parameters.cms>>
+              composer-version: <<parameters.composer-version>>
           - run-step:
               path: <<parameters.path>>
               hook: 'checkout'
@@ -402,7 +415,9 @@ orbs:
                     name: Create/Update PR In Github
                     path: <<parameters.path>>
                     command: |
+                      set -x
                       ID=$(gh pr list --head <<parameters.update-branch>> --json 'number' --jq '.[].number')
+                      echo "ID Found: ${ID}"
                       if [[ "${ID}" == "" ]]; then
                         gh pr create \
                           --base <<parameters.pr-branch>> \
@@ -1002,6 +1017,7 @@ jobs:
           site-hosting: "pantheon"
           site-id: "kanopi-2019"
           site-env: "live"
+          composer-version: '1'
   diebenkorn:
     executor: "custom/pantheon"
     steps:
