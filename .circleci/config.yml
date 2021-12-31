@@ -612,13 +612,13 @@ orbs:
                 equal: ["composer", <<parameters.method>>]
               steps:
                 # @Todo: Add parameters to composer install, pipe with yes
-                # - ci-tools/composer-install:
-                #     path: <<parameters.path>>
-                #     extra-args: --ansi --non-interactive
-                - run:
-                    name: Composer Install
-                    command: yes | composer install --ansi
+                - ci-tools/composer-install:
                     path: <<parameters.path>>
+                    extra-args: --ansi --non-interactive
+                # - run:
+                #     name: Composer Install
+                #     command: yes | composer install --ansi
+                #     path: <<parameters.path>>
                 - clear-cache:
                     path: <<parameters.path>>
                     cms: <<parameters.cms>>
