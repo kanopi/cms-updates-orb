@@ -111,7 +111,7 @@ git-email: &git-email
 composer-version: &composer-version
   description: "Version of composer to use. Default 2.x"
   type: enum
-  default: ['2']
+  default: '2'
   enum: ['1', '2']
 
 
