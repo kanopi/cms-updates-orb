@@ -35,6 +35,7 @@ $_ENV['PANTHEON_INDEX_HOST'] = PANTHEON_INDEX_HOST;
 $_ENV['AUTH_KEY'] = 'auth_key';
 $_ENV['SECURE_AUTH_KEY'] = 'secure_auth_key';
 $_ENV['LOGGED_IN_KEY'] = 'logged_in_key';
+$_ENV['NONCE_KEY'] = 'nonce_key';
 $_ENV['AUTH_SALT'] = 'auth_salt';
 $_ENV['SECURE_AUTH_SALT'] = 'secure_auth_salt';
 $_ENV['LOGGED_IN_SALT'] = 'logged_in_salt';
