@@ -176,6 +176,15 @@ db-env-vars: &db-env-vars
   MYSQL_USER: user
   MYSQL_PASSWORD: user
 
+# Default PHP Environment Variables
+php-env-vars: &php-env-vars
+  DB_HOST: db
+  DB_PORT: 3306
+  DB_NAME: default
+  DB_USER: user
+  DB_PASS: user
+  TZ: America/Los_Angeles
+
 # Stack Versions to use
 php-version: &php-version
   description: "Tag used for PHP version. Image: cimg/php"
@@ -885,8 +894,16 @@ orbs:
               default: '5.7'
           docker:
             - image: cimg/php:<<parameters.php-version>>
+              auth:
+                username: $DOCKERHUB_USER
+                password: $DOCKERHUB_PASS
+              environment:
+                <<: *php-env-vars
             - image: mysql:<<parameters.db-version>>
               name: db
+              auth:
+                username: $DOCKERHUB_USER
+                password: $DOCKERHUB_PASS
               environment: *db-env-vars
         acquia:
           parameters:
@@ -897,11 +914,22 @@ orbs:
             memcache-version: *memcache-version
           docker:
             - image: cimg/php:<<parameters.php-version>>
+              auth:
+                username: $DOCKERHUB_USER
+                password: $DOCKERHUB_PASS
+              environment:
+                <<: *php-env-vars
             - image: mysql:<<parameters.db-version>>
               name: db
+              auth:
+                username: $DOCKERHUB_USER
+                password: $DOCKERHUB_PASS
               environment: *db-env-vars
             - image: memcached:<<parameters.memcache-version>>
               name: memcached
+              auth:
+                username: $DOCKERHUB_USER
+                password: $DOCKERHUB_PASS
         pantheon:
           parameters:
             php-version: *php-version
@@ -914,17 +942,11 @@ orbs:
                 username: $DOCKERHUB_USER
                 password: $DOCKERHUB_PASS
               environment:
-                DB_HOST: db
-                DB_PORT: 3306
-                DB_NAME: default
-                DB_USER: user
-                DB_PASS: user
+                <<: *php-env-vars
                 CACHE_HOST: redis
                 CACHE_PORT: 6379
                 INDEX_HOST: solr
                 INDEX_PORT: 8983
-                # Set Timezone for PR dates
-                TZ: 'America/Los_Angeles'
             - image: circleci/redis:<<parameters.redis-version>>
               name: redis
               auth:
@@ -949,8 +971,16 @@ orbs:
               default: '5.7'
           docker:
             - image: cimg/php:<<parameters.php-version>>
+              auth:
+                username: $DOCKERHUB_USER
+                password: $DOCKERHUB_PASS
+              environment:
+                <<: *php-env-vars
             - image: mysql:<<parameters.db-version>>
               name: db
+              auth:
+                username: $DOCKERHUB_USER
+                password: $DOCKERHUB_PASS
               environment: *db-env-vars
 
 jobs:
