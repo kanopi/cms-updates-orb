@@ -573,7 +573,7 @@ orbs:
           #     path: <<parameters.path>>
           - run:
               name: Run Composer Update
-              command: composer update -W --no-interaction --optimize-autoloader
+              command: composer update -w --no-interaction --optimize-autoloader
               path: <<parameters.path>>
           - run:
               name: Export Package List After Update
