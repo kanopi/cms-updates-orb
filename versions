@@ -212,7 +212,7 @@ switch ($action) {
             case 'wpcli':
                 $title = '# WPCLI Package Updates';
                 $headers = ['Name', 'Old Version', 'New Version', 'Status'];
-                $cols = ['name', 'old_version', 'new_verison', 'status'];
+                $cols = ['name', 'old_version', 'new_version', 'status'];
 
                 $versions = merge_data($old_file_data, $new_file_data);
                 break;
