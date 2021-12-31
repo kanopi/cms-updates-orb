@@ -557,6 +557,7 @@ orbs:
       run-update-composer:
         parameters:
           path: *path
+          composer-version: *composer-version
         steps:
           - run:
               name: Export Package List Before Update
@@ -566,15 +567,22 @@ orbs:
               name: Composer Clear Cache
               command: composer clearcache --no-interaction
               path: <<parameters.path>>
-          # @Todo: Do I need to delete the vendor directory?
-          # - run:
-          #     name: Delete Vedor Directory
-          #     command: rm -rf vendor
-          #     path: <<parameters.path>>
-          - run:
-              name: Run Composer Update
-              command: composer update -w --no-interaction --optimize-autoloader
-              path: <<parameters.path>>
+          - when:
+              condition:
+                equal: ["2", <<parameters.composer-version>>]
+              steps:
+                - run:
+                    name: Run Composer Update
+                    command: composer update -W --no-interaction --optimize-autoloader
+                    path: <<parameters.path>>
+          - unless:
+              condition:
+                equal: ["2", <<parameters.composer-version>>]
+              steps:
+                - run:
+                    name: Run Composer Update
+                    command: composer update --no-interaction --optimize-autoloader
+                    path: <<parameters.path>>
           - run:
               name: Export Package List After Update
               command: composer show --no-interaction -i -f json > /tmp/after_update.json
@@ -611,10 +619,6 @@ orbs:
               condition:
                 equal: ["composer", <<parameters.method>>]
               steps:
-                # - ci-tools/composer-install:
-                #     version: <<parameters.composer-version>>
-                #     path: <<parameters.path>>
-                #     extra-args: --ansi --no-interaction
                 - run:
                     name: Install Tools
                     command: sudo apt install rsync -y
@@ -631,6 +635,7 @@ orbs:
                     docroot: <<parameters.docroot>>
                 - run-update-composer:
                     path: <<parameters.path>>
+                    composer-version: <<parameters.composer-version>>
                 - when:
                     condition:
                       or:
