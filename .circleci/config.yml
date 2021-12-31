@@ -616,6 +616,9 @@ orbs:
                 #     path: <<parameters.path>>
                 #     extra-args: --ansi --no-interaction
                 - run:
+                    name: Install Tools
+                    command: sudo apt install rsync -y
+                - run:
                     name: Install Composer Version
                     command: sudo composer self-update --<<parameters.composer-version>>
                 - run:
