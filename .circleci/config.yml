@@ -251,7 +251,7 @@ orbs:
         steps:
           - run:
               name: Update Composer
-              command: composer self-update --<<parameters.composer--version>>
+              command: composer self-update --<<parameters.composer-version>>
           - ci-tools/install-github-cli:
               version: '2.4.0'
           - when:
