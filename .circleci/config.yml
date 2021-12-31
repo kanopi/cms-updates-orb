@@ -550,7 +550,7 @@ orbs:
           #     path: <<parameters.path>>
           - run:
               name: Run Composer Update
-              command: yes | composer update -W --optimize-autoloader || true
+              command: yes | composer update -W --optimize-autoloader
               path: <<parameters.path>>
           - run:
               name: Export Package List After Update
@@ -593,7 +593,7 @@ orbs:
                 #     extra-args: --ansi --non-interactive
                 - run:
                     name: Composer Install
-                    command: yes | composer install --ansi || true
+                    command: yes | composer install --ansi
                     path: <<parameters.path>>
                 - clear-cache:
                     path: <<parameters.path>>
