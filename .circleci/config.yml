@@ -1079,20 +1079,35 @@ jobs:
 ###########
 workflows:
   version: 2
-  test:
+#  test:
+#    jobs:
+#      - coit-8:
+#          context: kanopi-code
+#      - coit-spot-removal:
+#          context: kanopi-code
+#      - mises:
+#          context: kanopi-code
+#      - mises-api:
+#          context: kanopi-code
+#      - kanopi-2019:
+#          context: kanopi-code
+#      - diebenkorn:
+#          context: kanopi-code
+  cms_update_workflow:
     jobs:
-      - coit-8:
-          context: kanopi-code
-      - coit-spot-removal:
-          context: kanopi-code
-      - mises:
-          context: kanopi-code
-      - mises-api:
-          context: kanopi-code
-      - kanopi-2019:
-          context: kanopi-code
-      - diebenkorn:
-          context: kanopi-code
+      - custom/run_cms_updates:
+          name: "coit-8"
+          executor: "pantheon"
+          method: "composer"
+          cms: "drupal9"
+          repo: "git@github.com:kanopi/coit-8"
+          pr-branch: "master"
+          db-type: "pantheon"
+          docroot: "web"
+          site-hosting: "pantheon"
+          site-id: "coit-main"
+          site-env: "live"
+
 # @Todo: Move from Job to Orb Job
 #   cms_update_workflows:
 #     when: << pipeline.parameters.run_update >>
