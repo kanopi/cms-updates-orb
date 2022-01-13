@@ -1107,6 +1107,7 @@ workflows:
           site-hosting: "pantheon"
           site-id: "coit-main"
           site-env: "live"
+          context: kanopi-code
 
 # @Todo: Move from Job to Orb Job
 #   cms_update_workflows:
