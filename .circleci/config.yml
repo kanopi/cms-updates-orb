@@ -39,7 +39,7 @@ test-requirements: &test-requirements
 
 executor: &executor
   description: "The executor to run this process for"
-  type: string
+  type: executor
 site: &site
   description: "The name of the site being updated."
   type: string
