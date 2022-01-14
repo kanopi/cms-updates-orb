@@ -51,6 +51,7 @@ cms: &cms
 repo: &repo
   description: "The url to use for cloning the repo"
   type: string
+  default: "${CIRCLE_REPOSITORY_URL}"
 pr-branch: &pr-branch
   description: "What is the main branch of the project that should be used."
   type: string
@@ -1210,18 +1211,18 @@ workflows:
           filters: *prod-filters
           requires: [orb-tools/publish]
 
-#  cms_update_workflow:
-#    jobs:
-#      - custom/run_cms_updates:
-#          name: "coit-8"
-#          executor: "pantheon"
-#          method: "composer"
-#          cms: "drupal9"
-#          repo: "git@github.com:kanopi/coit-8"
-#          pr-branch: "master"
-#          db-type: "pantheon"
-#          docroot: "web"
-#          site-hosting: "pantheon"
-#          site-id: "coit-main"
-#          site-env: "live"
-#          context: kanopi-code
+  cms_update_workflow:
+    jobs:
+      - custom/run_cms_updates:
+          name: "coit-8"
+          executor: "pantheon"
+          method: "composer"
+          cms: "drupal9"
+          repo: "git@github.com:kanopi/coit-8"
+          pr-branch: "master"
+          db-type: "pantheon"
+          docroot: "web"
+          site-hosting: "pantheon"
+          site-id: "coit-main"
+          site-env: "live"
+          context: kanopi-code
