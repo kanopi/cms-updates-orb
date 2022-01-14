@@ -126,7 +126,7 @@ update-message: &update-message
 orb-version: &orb-version
   description: "Is this running from the orb?"
   type: boolean
-  default: false
+  default: true
 dockerhub-user: &dockerhub-user
   description: "Dockerhub User Name"
   type: string
@@ -148,6 +148,10 @@ composer-version: &composer-version
   type: enum
   default: '2'
   enum: ['1', '2']
+cms-updates-version: &cms-updates-version
+  description: "Version of CMS Updates Script Download"
+  type: string
+  default: 'main'
 
 ci-tools-version: &ci-tools-version "kanopi/ci-tools@1.8.3"
 
@@ -170,6 +174,7 @@ default-params: &default-params
   git-name: *git-name
   git-email: *git-email
   composer-version: *composer-version
+  cms-updates-version: *cms-updates-version
 
 # Param Values that are used throughout the Orb
 params: &params
@@ -188,6 +193,7 @@ params: &params
   update-message: '<<parameters.update-message>>'
   orb-version: <<parameters.orb-version>>
   composer-version: <<parameters.composer-version>>
+  cms-updates-version: <<parameters.cms-updates-version>>
 
 # Param Values that are fed from the Pipeline
 # Submitted through a POST to create a new pipeline
@@ -898,15 +904,12 @@ orbs:
               command: |
                 git config --global user.email "<<parameters.git-email>>"
                 git config --global user.name "<<parameters.git-name>>"
-          # @Todo: Find a way to checkout/download
-          # - run:
-          #     name: Install Extra Config
-          #     command: |
-          #       if [[ ! -d $HOME/config ]]; then
-          #         echo "TBD Download config"
-          #       fi
-          - checkout:
-              path: ~/config
+          - run:
+              name: Install Extra Config
+              command: |
+                git clone git@github.com:kanopi/cms-updates $HOME/config
+                cd $HOME/config
+                git checkout <<parameters.cms-updates-version>>
           - when:
               condition:
                 equal: ["drupal7", <<parameters.cms>>]
