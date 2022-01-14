@@ -1169,7 +1169,7 @@ jobs:
 ### Workflows
 ###########
 workflows:
-  version: 2
+  version: 2.1
   build:
     jobs:
       # Lint yml files to make sure formatted
