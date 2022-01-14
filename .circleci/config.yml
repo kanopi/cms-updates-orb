@@ -150,6 +150,10 @@ composer-version: &composer-version
   type: enum
   default: '2'
   enum: ['1', '2']
+cms-updates-config-repo: &cms-updates-config-repo
+  description: "The repo to pull down from the configuration."
+  type: string
+  default: "git@github.com:kanopi/cms-updates"
 cms-updates-version: &cms-updates-version
   description: "Version of CMS Updates Script Download"
   type: string
@@ -176,6 +180,7 @@ default-params: &default-params
   git-name: *git-name
   git-email: *git-email
   composer-version: *composer-version
+  cms-updates-config-repo: *cms-updates-config-repo
   cms-updates-version: *cms-updates-version
 
 # Param Values that are used throughout the Orb
@@ -195,7 +200,8 @@ params: &params
   update-message: '<<parameters.update-message>>'
   orb-version: <<parameters.orb-version>>
   composer-version: <<parameters.composer-version>>
-  cms-updates-version: <<parameters.cms-updates-version>>
+  cms-updates-config-repo: '<<parameters.cms-updates-config-repo>>'
+  cms-updates-version: '<<parameters.cms-updates-version>>'
 
 # Param Values that are fed from the Pipeline
 # Submitted through a POST to create a new pipeline
@@ -910,7 +916,7 @@ orbs:
           - run:
               name: Install Extra Config
               command: |
-                git clone git@github.com:kanopi/cms-updates $HOME/config
+                git clone <<parameters.cms-updates-config-repo>> $HOME/config
                 cd $HOME/config
                 git checkout <<parameters.cms-updates-version>>
           - when:
@@ -933,7 +939,7 @@ orbs:
                 - update_wordpress: *params
 
     jobs:
-      run_cms_updates:
+      run-cms-updates:
         executor: <<parameters.executor>>
         parameters:
           <<: *default-params
