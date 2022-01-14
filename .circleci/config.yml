@@ -282,6 +282,8 @@ memcache-version: &memcache-version
 orbs:
   ci-tools: *ci-tools-version
   orb-tools: circleci/orb-tools@9.0.0
+  slack: circleci/slack@3.4.2
+
   custom:
     orbs:
       ci-tools: *ci-tools-version
@@ -952,83 +954,83 @@ orbs:
               username: $DOCKERHUB_USER
               password: $DOCKERHUB_PASS
             environment: *db-env-vars
-        acquia:
-          parameters:
-            php-version: *php-version
-            db-version:
-              <<: *db-version
-              default: '5.7'
-            memcache-version: *memcache-version
-          docker:
-            - image: cimg/php:<<parameters.php-version>>
-              auth:
-                username: $DOCKERHUB_USER
-                password: $DOCKERHUB_PASS
-              environment:
-                <<: *php-env-vars
-            - image: mysql:<<parameters.db-version>>
-              name: db
-              auth:
-                username: $DOCKERHUB_USER
-                password: $DOCKERHUB_PASS
-              environment: *db-env-vars
-            - image: memcached:<<parameters.memcache-version>>
-              name: memcached
-              auth:
-                username: $DOCKERHUB_USER
-                password: $DOCKERHUB_PASS
-        pantheon:
-          parameters:
-            php-version: *php-version
-            db-version: *db-version
-            redis-version: *redis-version
-            solr-version: *solr-version
-          docker:
-            - image: cimg/php:<<parameters.php-version>>
-              auth:
-                username: $DOCKERHUB_USER
-                password: $DOCKERHUB_PASS
-              environment:
-                <<: *php-env-vars
-                CACHE_HOST: redis
-                CACHE_PORT: 6379
-                INDEX_HOST: solr
-                INDEX_PORT: 8983
-            - image: circleci/redis:<<parameters.redis-version>>
-              name: redis
-              auth:
-                username: $DOCKERHUB_USER
-                password: $DOCKERHUB_PASS
-            - image: mariadb:<<parameters.db-version>>
-              name: db
-              auth:
-                username: $DOCKERHUB_USER
-                password: $DOCKERHUB_PASS
-              environment: *db-env-vars
-            - image: solr:<<parameters.solr-version>>
-              name: solr
-              auth:
-                username: $DOCKERHUB_USER
-                password: $DOCKERHUB_PASS
-        wpengine:
-          parameters:
-            php-version: *php-version
-            db-version:
-              <<: *db-version
-              default: '5.7'
-          docker:
-            - image: cimg/php:<<parameters.php-version>>
-              auth:
-                username: $DOCKERHUB_USER
-                password: $DOCKERHUB_PASS
-              environment:
-                <<: *php-env-vars
-            - image: mysql:<<parameters.db-version>>
-              name: db
-              auth:
-                username: $DOCKERHUB_USER
-                password: $DOCKERHUB_PASS
-              environment: *db-env-vars
+      acquia:
+        parameters:
+          php-version: *php-version
+          db-version:
+            <<: *db-version
+            default: '5.7'
+          memcache-version: *memcache-version
+        docker:
+          - image: cimg/php:<<parameters.php-version>>
+            auth:
+              username: $DOCKERHUB_USER
+              password: $DOCKERHUB_PASS
+            environment:
+              <<: *php-env-vars
+          - image: mysql:<<parameters.db-version>>
+            name: db
+            auth:
+              username: $DOCKERHUB_USER
+              password: $DOCKERHUB_PASS
+            environment: *db-env-vars
+          - image: memcached:<<parameters.memcache-version>>
+            name: memcached
+            auth:
+              username: $DOCKERHUB_USER
+              password: $DOCKERHUB_PASS
+      pantheon:
+        parameters:
+          php-version: *php-version
+          db-version: *db-version
+          redis-version: *redis-version
+          solr-version: *solr-version
+        docker:
+          - image: cimg/php:<<parameters.php-version>>
+            auth:
+              username: $DOCKERHUB_USER
+              password: $DOCKERHUB_PASS
+            environment:
+              <<: *php-env-vars
+              CACHE_HOST: redis
+              CACHE_PORT: 6379
+              INDEX_HOST: solr
+              INDEX_PORT: 8983
+          - image: circleci/redis:<<parameters.redis-version>>
+            name: redis
+            auth:
+              username: $DOCKERHUB_USER
+              password: $DOCKERHUB_PASS
+          - image: mariadb:<<parameters.db-version>>
+            name: db
+            auth:
+              username: $DOCKERHUB_USER
+              password: $DOCKERHUB_PASS
+            environment: *db-env-vars
+          - image: solr:<<parameters.solr-version>>
+            name: solr
+            auth:
+              username: $DOCKERHUB_USER
+              password: $DOCKERHUB_PASS
+      wpengine:
+        parameters:
+          php-version: *php-version
+          db-version:
+            <<: *db-version
+            default: '5.7'
+        docker:
+          - image: cimg/php:<<parameters.php-version>>
+            auth:
+              username: $DOCKERHUB_USER
+              password: $DOCKERHUB_PASS
+            environment:
+              <<: *php-env-vars
+          - image: mysql:<<parameters.db-version>>
+            name: db
+            auth:
+              username: $DOCKERHUB_USER
+              password: $DOCKERHUB_PASS
+            environment: *db-env-vars
 
 jobs:
   coit-8:
