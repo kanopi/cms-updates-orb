@@ -3,6 +3,39 @@ version: 2.1
 ###########
 ### Reusable Variables
 ###########
+
+# All Tags and Branches
+all-filters: &all-filters
+  tags:
+    only: /.*/
+  branches:
+    only: /.*/
+
+# Only on Branches
+dev-filters: &dev-filters
+  tags:
+    ignore: /.*/
+  branches:
+    only: /.*/
+
+# Only on Tags
+prod-filters: &prod-filters
+  tags:
+    only: /.*/
+  branches:
+    ignore: /.*/
+
+# Requirements for the tests to start running.
+test-pretest: &test-pretest
+  [
+    orb-tools/lint
+  ]
+
+# Requirements for the rest of the process to finish.
+test-requirements: &test-requirements
+  [
+  ]
+
 executor: &executor
   description: "The executor to run this process for"
   type: string
@@ -114,6 +147,7 @@ composer-version: &composer-version
   default: '2'
   enum: ['1', '2']
 
+ci-tools-version: &ci-tools-version "kanopi/ci-tools@1.8.3"
 
 # The default parameters to use for steps.
 default-params: &default-params
@@ -215,7 +249,7 @@ memcache-version: &memcache-version
 #     description: 'Allow the updates to be ran.'
 #     type: boolean
 #     default: true
-#   executor: 
+#   executor:
 #     <<: *executor
 #   site:
 #     <<: *site
@@ -227,15 +261,15 @@ memcache-version: &memcache-version
 #     <<: *pr-branch
 #   db-type:
 #     <<: *db-type
-#   docroot: 
+#   docroot:
 #     <<: *docroot
 #   update-branch:
 #     <<: *update-branch
-#   site-hosting: 
+#   site-hosting:
 #     <<: *site-hosting
 #   site-id:
 #     <<: *site-id
-#   site-env: 
+#   site-env:
 #     <<: *site-env
 #   method:
 #     <<: *method
@@ -246,9 +280,11 @@ memcache-version: &memcache-version
 ### Custom Orbs
 ###########
 orbs:
+  ci-tools: *ci-tools-version
+  orb-tools: circleci/orb-tools@9.0.0
   custom:
     orbs:
-      ci-tools: kanopi/ci-tools@1.8.3
+      ci-tools: *ci-tools-version
     commands:
       ## Install Tools for Specific CMS
       install-tools:
@@ -273,7 +309,7 @@ orbs:
               condition:
                 equal: ["wordpress", <<parameters.cms>>]
               steps:
-                - ci-tools/install-wpcli  
+                - ci-tools/install-wpcli
 
       ## Run Hook
       run-hook:
@@ -289,7 +325,7 @@ orbs:
                 if [[ -f .updates/<<parameters.hook>> ]]; then
                   .updates/<<parameters.hook>>
                 fi
-              path: <<parameters.path>>      
+              path: <<parameters.path>>
 
       ## Run Step
       run-step:
@@ -306,7 +342,7 @@ orbs:
           - steps: << parameters.steps >>
           - run-hook:
               hook: 'post-<<parameters.hook>>'
-              path: <<parameters.path>>              
+              path: <<parameters.path>>
 
       ## Start PHP Server
       start-php-server:
@@ -327,7 +363,7 @@ orbs:
         description: >
           Command to run updates on project
         parameters:
-          <<: *default-params          
+          <<: *default-params
         steps:
           - install-tools:
               cms: <<parameters.cms>>
@@ -393,7 +429,7 @@ orbs:
                     command: |
                       count=$(git status -s | wc -l  | tr -d '[:space:]')
                       if [[ $count -eq 0 ]]; then
-                        echo "No updates found stopping build" 
+                        echo "No updates found stopping build"
                         circleci-agent step halt
                       fi
                 - run:
@@ -516,7 +552,7 @@ orbs:
         steps:
           - run:
               name: Export Package List Before Update
-              command: drush pm-list --format=json --status=enabled > /tmp/before_update.json 
+              command: drush pm-list --format=json --status=enabled > /tmp/before_update.json
               path: <<parameters.path>>/<<parameters.docroot>>
           - run:
               name: Run Drush Update
@@ -524,7 +560,7 @@ orbs:
               path: <<parameters.path>>/<<parameters.docroot>>
           - run:
               name: Export Package List After Update
-              command: drush pm-list --format=json --status=enabled > /tmp/after_update.json 
+              command: drush pm-list --format=json --status=enabled > /tmp/after_update.json
               path: <<parameters.path>>/<<parameters.docroot>>
           - run:
               name: Run Diff Report
@@ -538,7 +574,7 @@ orbs:
         steps:
           - run:
               name: Export Package List Before Update
-              command: wp plugin list --status=active --format=json > /tmp/before_update.json 
+              command: wp plugin list --status=active --format=json > /tmp/before_update.json
               path: <<parameters.path>>/<<parameters.docroot>>
           ## Need to pipe true because not all plugins can be updated with WPCLI
           - run:
@@ -547,7 +583,7 @@ orbs:
               path: <<parameters.path>>/<<parameters.docroot>>
           - run:
               name: Export Package List Before Update
-              command: wp plugin list --status=active --format=json > /tmp/after_update.json 
+              command: wp plugin list --status=active --format=json > /tmp/after_update.json
               path: <<parameters.path>>/<<parameters.docroot>>
           - run:
               name: Run Diff Report
@@ -562,7 +598,7 @@ orbs:
           - run:
               name: Export Package List Before Update
               command: composer show --no-interaction -i -f json > /tmp/before_update.json
-              path: <<parameters.path>>          
+              path: <<parameters.path>>
           - run:
               name: Composer Clear Cache
               command: composer clearcache --no-interaction
@@ -644,7 +680,7 @@ orbs:
                         - equal: ["drupal9", <<parameters.cms>>]
                     steps:
                       - run:
-                          name: Drush Export 
+                          name: Drush Export
                           command: drush cex -y
                           path: <<parameters.path>>/<<parameters.docroot>>
                 - clear-cache:
@@ -665,10 +701,10 @@ orbs:
                     docroot: <<parameters.docroot>>
           - store_artifacts:
               path: /tmp
-                    
+
       #############
       ## Pull Database From Host
-      #############      
+      #############
 
       ## Pull DB with Terminus
       pantheon-pull-db:
@@ -735,7 +771,7 @@ orbs:
         description: >
           Used for pulling database from WP Engine
         parameters:
-          <<: *default-params          
+          <<: *default-params
         steps:
           - run:
               name: Test
@@ -819,7 +855,7 @@ orbs:
 
       #############
       ## Update CMS
-      ############# 
+      #############
 
       ## Update for D7
       update_drupal7:
@@ -897,25 +933,25 @@ orbs:
               <<: *params
 
     executors:
-        php-mysql:
-          parameters:
-            php-version: *php-version
-            db-version:
-              <<: *db-version
-              default: '5.7'
-          docker:
-            - image: cimg/php:<<parameters.php-version>>
-              auth:
-                username: $DOCKERHUB_USER
-                password: $DOCKERHUB_PASS
-              environment:
-                <<: *php-env-vars
-            - image: mysql:<<parameters.db-version>>
-              name: db
-              auth:
-                username: $DOCKERHUB_USER
-                password: $DOCKERHUB_PASS
-              environment: *db-env-vars
+      php-mysql:
+        parameters:
+          php-version: *php-version
+          db-version:
+            <<: *db-version
+            default: '5.7'
+        docker:
+          - image: cimg/php:<<parameters.php-version>>
+            auth:
+              username: $DOCKERHUB_USER
+              password: $DOCKERHUB_PASS
+            environment:
+              <<: *php-env-vars
+          - image: mysql:<<parameters.db-version>>
+            name: db
+            auth:
+              username: $DOCKERHUB_USER
+              password: $DOCKERHUB_PASS
+            environment: *db-env-vars
         acquia:
           parameters:
             php-version: *php-version
@@ -1073,49 +1109,116 @@ jobs:
           docroot: "."
           site-hosting: "pantheon"
           site-id: "diebenkorn"
-          site-env: "live"  
+          site-env: "live"
+
+  # Used for Extracting Orb
+  extract-inline:
+    executor: orb-tools/alpine
+    steps:
+      - checkout
+      - ci-tools/install-item:
+          url: https://github.com/geofffranks/spruce/releases/download/v1.27.0/spruce-linux-amd64
+          save-as: 'spruce'
+      - ci-tools/install-yq
+      - run:
+          name: Merge Anchors and References
+          command: spruce merge .circleci/config.yml > merged-config.yml
+      - run:
+          name: Extract Orb
+          command: yq r merged-config.yml orbs.custom > src/cms-updates.yml
+      - store_artifacts:
+          path: src
+      - persist_to_workspace:
+          paths:
+            - src/ci-tools.yml
+          root: .
+      - run:
+          name: Display Extracted Orb
+          command: cat src/cms-updates.yml
+
+  # Notify at end of
+  notify-publish-dev:
+    executor: ci-tools/alpine
+    steps:
+      - checkout
+      - slack/notify:
+          title: "New Dev Version of CMS Updates!!!!"
+          footer: "Last commit: $(git log -1 --pretty=%B) (${CIRCLE_SHA1:0:7})"
+          message: "Kanopi CI Orbs has published dev version: kanopi/cms-updates@dev:${CIRCLE_SHA1:0:7}"
+          include_visit_job_action: false
+          include_job_number_field: false
+          include_project_field: false
+
+  # Notify at end of published
+  notify-publish:
+    executor: ci-tools/alpine
+    steps:
+      - checkout
+      - slack/notify:
+          title: "New Version of CI Orbs!!!!"
+          message: "Kanopi CI Orbs has published new version: kanopi/cms-updates@${CIRCLE_TAG}"
+          footer: "Last commit: $(git log -1 --pretty=%B) (${CIRCLE_SHA1:0:7})"
+          include_visit_job_action: false
+          include_job_number_field: false
+          include_project_field: false
+
 ###########
 ### Workflows
 ###########
 workflows:
   version: 2
-#  test:
-#    jobs:
-#      - coit-8:
-#          context: kanopi-code
-#      - coit-spot-removal:
-#          context: kanopi-code
-#      - mises:
-#          context: kanopi-code
-#      - mises-api:
-#          context: kanopi-code
-#      - kanopi-2019:
-#          context: kanopi-code
-#      - diebenkorn:
-#          context: kanopi-code
-  cms_update_workflow:
+  build:
     jobs:
-      - custom/run_cms_updates:
-          name: "coit-8"
-          executor: "pantheon"
-          method: "composer"
-          cms: "drupal9"
-          repo: "git@github.com:kanopi/coit-8"
-          pr-branch: "master"
-          db-type: "pantheon"
-          docroot: "web"
-          site-hosting: "pantheon"
-          site-id: "coit-main"
-          site-env: "live"
-          context: kanopi-code
+      # Lint yml files to make sure formatted
+      - orb-tools/lint:
+          filters: *all-filters
 
-# @Todo: Move from Job to Orb Job
-#   cms_update_workflows:
-#     when: << pipeline.parameters.run_update >>
-#     jobs:
-#       - custom/run_cms_updates:
-#           <<: *pipeline-params
-#           pre-steps:
-#             - checkout:
-#                 path: /home/circleci/config
-#           context: kanopi-code
+      # Extract the orb from the config and test
+      - extract-inline:
+          filters: *all-filters
+          requires: *test-requirements
+
+      # Pack Everything in src directory to orb.yml
+      - orb-tools/pack:
+          filters: *all-filters
+          requires: [extract-inline]
+          attach-workspace: true
+
+      # If is a branch publish dev version
+      - orb-tools/publish-dev:
+          filters: *dev-filters
+          requires: [orb-tools/pack]
+          orb-name: kanopi/cms-updates
+
+      # Slack notify about the orb dev version being published
+      - notify-publish-dev:
+          filters: *dev-filters
+          requires: [orb-tools/publish-dev]
+
+      # If is a release publish version
+      - orb-tools/publish:
+          filters: *prod-filters
+          requires: [orb-tools/pack]
+          orb-ref: kanopi/cms-updates@${CIRCLE_TAG}
+          attach-workspace: true
+
+      # Slack notify about the orb being published
+      - notify-publish:
+          filters: *prod-filters
+          requires: [orb-tools/publish]
+
+#  cms_update_workflow:
+#    jobs:
+#      - custom/run_cms_updates:
+#          name: "coit-8"
+#          executor: "pantheon"
+#          method: "composer"
+#          cms: "drupal9"
+#          repo: "git@github.com:kanopi/coit-8"
+#          pr-branch: "master"
+#          db-type: "pantheon"
+#          docroot: "web"
+#          site-hosting: "pantheon"
+#          site-id: "coit-main"
+#          site-env: "live"
+#          context: kanopi-code
