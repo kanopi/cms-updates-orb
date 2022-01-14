@@ -34,6 +34,7 @@ test-pretest: &test-pretest
 # Requirements for the rest of the process to finish.
 test-requirements: &test-requirements
   [
+    orb-tools/lint
   ]
 
 executor: &executor
@@ -1132,7 +1133,7 @@ jobs:
           path: src
       - persist_to_workspace:
           paths:
-            - src/ci-tools.yml
+            - src/cms-updates.yml
           root: .
       - run:
           name: Display Extracted Orb
