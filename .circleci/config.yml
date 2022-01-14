@@ -55,7 +55,7 @@ repo: &repo
 pr-branch: &pr-branch
   description: "What is the main branch of the project that should be used."
   type: string
-  default: "main"
+  default: "${CIRCLE_BRANCH}"
 db-type: &db-type
   description: "What is the method for pulling the database."
   type: enum
