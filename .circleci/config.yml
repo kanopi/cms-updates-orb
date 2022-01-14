@@ -37,6 +37,8 @@ test-requirements: &test-requirements
     orb-tools/lint
   ]
 
+checkout-path: &checkout-path "/home/circleci/project-update"
+
 executor: &executor
   description: "The executor to run this process for"
   type: executor
@@ -90,7 +92,7 @@ update-branch: &update-branch
 path: &path
   description: "Path to checkout the project from."
   type: string
-  default: "/home/circleci/project-update"
+  default: *checkout-path
 update: &update
   description: "Steps to take as part of the update process."
   type: steps
@@ -385,7 +387,8 @@ orbs:
                 - when:
                     condition: <<parameters.orb-version>>
                     steps:
-                      - checkout
+                      - checkout:
+                          path: <<parameters.path>>
                 - unless:
                     condition: <<parameters.orb-version>>
                     steps:
