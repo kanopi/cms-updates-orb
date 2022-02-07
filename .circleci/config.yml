@@ -203,22 +203,6 @@ params: &params
   cms-updates-config-repo: '<<parameters.cms-updates-config-repo>>'
   cms-updates-version: '<<parameters.cms-updates-version>>'
 
-# Param Values that are fed from the Pipeline
-# Submitted through a POST to create a new pipeline
-# pipeline-params: &pipeline-params
-#   executor: '<<pipeline.parameters.executor>>'
-#   site: '<<pipeline.parameters.site>>'
-#   cms: '<<pipeline.parameters.cms>>'
-#   repo: '<<pipeline.parameters.repo>>'
-#   pr-branch: '<<pipeline.parameters.pr-branch>>'
-#   db-type: '<<pipeline.parameters.db-type>>'
-#   docroot: '<<pipeline.parameters.docroot>>'
-#   update-branch: '<<pipeline.parameters.update-branch>>'
-#   site-hosting: '<<pipeline.parameters.site-hosting>>'
-#   site-id: '<<pipeline.parameters.site-id>>'
-#   site-env: '<<pipeline.parameters.site-env>>'
-#   method: '<<pipeline.parameters.method>>'
-
 # Default DB Environment Variables
 db-env-vars: &db-env-vars
   MYSQL_ROOT_PASSWORD: root
@@ -259,38 +243,19 @@ memcache-version: &memcache-version
 
 ###########
 ### Pipeline Configuration
+### These parameters are used internally by orb-tools. Skip to the Jobs section.
 ###########
-# parameters:
-#   run_update:
-#     description: 'Allow the updates to be ran.'
-#     type: boolean
-#     default: true
-#   executor:
-#     <<: *executor
-#   site:
-#     <<: *site
-#   cms:
-#     <<: *cms
-#   repo:
-#     <<: *repo
-#   pr-branch:
-#     <<: *pr-branch
-#   db-type:
-#     <<: *db-type
-#   docroot:
-#     <<: *docroot
-#   update-branch:
-#     <<: *update-branch
-#   site-hosting:
-#     <<: *site-hosting
-#   site-id:
-#     <<: *site-id
-#   site-env:
-#     <<: *site-env
-#   method:
-#     <<: *method
-#   orb-version:
-#     <<: *orb-version
+parameters:
+  run-integration-tests:
+    description: An internal flag to prevent integration test from running before a development version has been created.
+    type: boolean
+    default: false
+  dev-orb-version:
+    description: >
+      The development version of the orb to test.
+      This value is automatically adjusted by the "trigger-integration-tests-workflow" job to correspond with the specific version created by the commit and should not be edited.
+    type: string
+    default: "dev:f4475a19" # v1.0.0 Version
 
 ###########
 ### Custom Orbs
@@ -299,6 +264,7 @@ orbs:
   ci-tools: *ci-tools-version
   orb-tools: circleci/orb-tools@9.0.0
   slack: circleci/slack@3.4.2
+  cms-updates: kanopi/cms-updates@<< pipeline.parameters.dev-orb-version >>
 
   custom:
     orbs:
@@ -1104,37 +1070,126 @@ jobs:
 workflows:
   version: 2.1
   build:
+    unless: << pipeline.parameters.run-integration-tests >>
     jobs:
       # Lint yml files to make sure formatted
-      - orb-tools/lint:
-          filters: *all-filters
+      - orb-tools/lint
 
       # Extract the orb from the config and test
       - extract-inline:
-          filters: *all-filters
           requires: *test-requirements
 
       # Pack Everything in src directory to orb.yml
       - orb-tools/pack:
-          filters: *all-filters
           requires: [extract-inline]
           attach-workspace: true
 
       # If is a branch publish dev version
       - orb-tools/publish-dev:
-          filters: *dev-filters
           requires: [orb-tools/pack]
           orb-name: kanopi/cms-updates
 
+      # Trigger an integration workflow to test the
+      # dev:${CIRCLE_SHA1:0:7} version of your orb
+      - orb-tools/trigger-integration-tests-workflow:
+          name: trigger-integration-dev
+          requires: [orb-tools/publish-dev]
+
       # Slack notify about the orb dev version being published
       - notify-publish-dev:
-          filters: *dev-filters
           requires: [orb-tools/publish-dev]
+
+  integration-tests:
+    when: << pipeline.parameters.run-integration-tests >>
+    jobs:
+      # Run any integration tests defined within the `jobs` key.
+      #######################
+      #### Pantheon Test Items
+      #######################
+      - cms-updates/run_cms_updates:
+          name: coit-8
+          executor: cms-updates/pantheon
+          method: "composer"
+          cms: "drupal9"
+          repo: "git@github.com:kanopi/coit-8"
+          pr-branch: "master"
+          db-type: "pantheon"
+          docroot: "web"
+          site-hosting: "pantheon"
+          site-id: "coit-main"
+          site-env: "live"
+      - cms-updates/run_cms_updates:
+          name: coit-spot-removal
+          executor: cms-updates/pantheon
+          method: "drush"
+          cms: "drupal7"
+          repo: "git@github.com:kanopi/coit-spot-removal"
+          pr-branch: "master"
+          db-type: "pantheon"
+          docroot: "."
+          site-hosting: "pantheon"
+          site-id: "coit-spot-removal"
+          site-env: "live"
+      - cms-updates/run_cms_updates:
+          name: mises
+          executor: cms-updates/pantheon
+          method: "drush"
+          cms: "drupal7"
+          repo: "git@github.com:kanopi/mises"
+          pr-branch: "main"
+          db-type: "pantheon"
+          docroot: "."
+          site-hosting: "pantheon"
+          site-id: "mises"
+          site-env: "live"
+      - cms-updates/run_cms_updates:
+          name: mises-api
+          executor: cms-updates/pantheon
+          method: "composer"
+          cms: "drupal9"
+          repo: "git@github.com:kanopi/mises-api"
+          pr-branch: "main"
+          db-type: "pantheon"
+          docroot: "web"
+          site-hosting: "pantheon"
+          site-id: "mises-api"
+          site-env: "dev"
+      - cms-updates/run_cms_updates:
+          name: kanopi-2019
+          executor: cms-updates/pantheon
+          method: "composer"
+          cms: "wordpress"
+          repo: "git@github.com:kanopi/kanopi-2019"
+          pr-branch: "master"
+          db-type: "pantheon"
+          docroot: "web"
+          site-hosting: "pantheon"
+          site-id: "kanopi-2019"
+          site-env: "live"
+          composer-version: '1'
+      - cms-updates/run_cms_updates:
+          name: diebenkorn
+          executor: cms-updates/pantheon
+          method: "wpcli"
+          cms: "wordpress"
+          repo: "git@github.com:kanopi/diebenkorn"
+          pr-branch: "main"
+          db-type: "pantheon"
+          docroot: "."
+          site-hosting: "pantheon"
+          site-id: "diebenkorn"
+          site-env: "live"
 
       # If is a release publish version
       - orb-tools/publish:
           filters: *prod-filters
-          requires: [orb-tools/pack]
+          requires:
+            - coit-8
+            - coit-spot-removal
+            - mises
+            - mises-api
+            - kanopi-2019
+            - diebenkorn          
           orb-ref: kanopi/cms-updates@${CIRCLE_TAG}
           attach-workspace: true
 
