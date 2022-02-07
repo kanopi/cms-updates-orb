@@ -39,6 +39,11 @@ test-requirements: &test-requirements
 
 checkout-path: &checkout-path "/home/circleci/project-update"
 
+# Requirements for Integration Tests
+integration-requirements: &integration-requirements
+  orb-version: false
+  context: kanopi-code
+
 executor: &executor
   description: "The executor to run this process for"
   type: executor
@@ -1107,6 +1112,7 @@ workflows:
       #### Pantheon Test Items
       #######################
       - cms-updates/run-cms-updates:
+          <<: *integration-requirements
           name: coit-8
           executor: cms-updates/pantheon
           method: "composer"
@@ -1118,8 +1124,8 @@ workflows:
           site-hosting: "pantheon"
           site-id: "coit-main"
           site-env: "live"
-          orb-version: false
       - cms-updates/run-cms-updates:
+          <<: *integration-requirements
           name: coit-spot-removal
           executor: cms-updates/pantheon
           method: "drush"
@@ -1131,8 +1137,8 @@ workflows:
           site-hosting: "pantheon"
           site-id: "coit-spot-removal"
           site-env: "live"
-          orb-version: false
       - cms-updates/run-cms-updates:
+          <<: *integration-requirements
           name: mises
           executor: cms-updates/pantheon
           method: "drush"
@@ -1144,8 +1150,8 @@ workflows:
           site-hosting: "pantheon"
           site-id: "mises"
           site-env: "live"
-          orb-version: false
       - cms-updates/run-cms-updates:
+          <<: *integration-requirements
           name: mises-api
           executor: cms-updates/pantheon
           method: "composer"
@@ -1157,8 +1163,8 @@ workflows:
           site-hosting: "pantheon"
           site-id: "mises-api"
           site-env: "dev"
-          orb-version: false
       - cms-updates/run-cms-updates:
+          <<: *integration-requirements
           name: kanopi-2019
           executor: cms-updates/pantheon
           method: "composer"
@@ -1171,8 +1177,9 @@ workflows:
           site-id: "kanopi-2019"
           site-env: "live"
           composer-version: '1'
-          orb-version: false
+
       - cms-updates/run-cms-updates:
+          <<: *integration-requirements
           name: diebenkorn
           executor: cms-updates/pantheon
           method: "wpcli"
@@ -1184,7 +1191,6 @@ workflows:
           site-hosting: "pantheon"
           site-id: "diebenkorn"
           site-env: "live"
-          orb-version: false
 
       # If is a release publish version
       - orb-tools/publish:
