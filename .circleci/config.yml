@@ -1118,6 +1118,7 @@ workflows:
           site-hosting: "pantheon"
           site-id: "coit-main"
           site-env: "live"
+          orb-version: false
       - cms-updates/run-cms-updates:
           name: coit-spot-removal
           executor: cms-updates/pantheon
@@ -1130,6 +1131,7 @@ workflows:
           site-hosting: "pantheon"
           site-id: "coit-spot-removal"
           site-env: "live"
+          orb-version: false
       - cms-updates/run-cms-updates:
           name: mises
           executor: cms-updates/pantheon
@@ -1142,6 +1144,7 @@ workflows:
           site-hosting: "pantheon"
           site-id: "mises"
           site-env: "live"
+          orb-version: false
       - cms-updates/run-cms-updates:
           name: mises-api
           executor: cms-updates/pantheon
@@ -1154,6 +1157,7 @@ workflows:
           site-hosting: "pantheon"
           site-id: "mises-api"
           site-env: "dev"
+          orb-version: false
       - cms-updates/run-cms-updates:
           name: kanopi-2019
           executor: cms-updates/pantheon
@@ -1167,6 +1171,7 @@ workflows:
           site-id: "kanopi-2019"
           site-env: "live"
           composer-version: '1'
+          orb-version: false
       - cms-updates/run-cms-updates:
           name: diebenkorn
           executor: cms-updates/pantheon
@@ -1179,6 +1184,7 @@ workflows:
           site-hosting: "pantheon"
           site-id: "diebenkorn"
           site-env: "live"
+          orb-version: false
 
       # If is a release publish version
       - orb-tools/publish:
