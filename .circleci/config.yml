@@ -1106,7 +1106,7 @@ workflows:
       #######################
       #### Pantheon Test Items
       #######################
-      - cms-updates/run_cms_updates:
+      - cms-updates/run-cms-updates:
           name: coit-8
           executor: cms-updates/pantheon
           method: "composer"
@@ -1118,7 +1118,7 @@ workflows:
           site-hosting: "pantheon"
           site-id: "coit-main"
           site-env: "live"
-      - cms-updates/run_cms_updates:
+      - cms-updates/run-cms-updates:
           name: coit-spot-removal
           executor: cms-updates/pantheon
           method: "drush"
@@ -1130,7 +1130,7 @@ workflows:
           site-hosting: "pantheon"
           site-id: "coit-spot-removal"
           site-env: "live"
-      - cms-updates/run_cms_updates:
+      - cms-updates/run-cms-updates:
           name: mises
           executor: cms-updates/pantheon
           method: "drush"
@@ -1142,7 +1142,7 @@ workflows:
           site-hosting: "pantheon"
           site-id: "mises"
           site-env: "live"
-      - cms-updates/run_cms_updates:
+      - cms-updates/run-cms-updates:
           name: mises-api
           executor: cms-updates/pantheon
           method: "composer"
@@ -1154,7 +1154,7 @@ workflows:
           site-hosting: "pantheon"
           site-id: "mises-api"
           site-env: "dev"
-      - cms-updates/run_cms_updates:
+      - cms-updates/run-cms-updates:
           name: kanopi-2019
           executor: cms-updates/pantheon
           method: "composer"
@@ -1167,7 +1167,7 @@ workflows:
           site-id: "kanopi-2019"
           site-env: "live"
           composer-version: '1'
-      - cms-updates/run_cms_updates:
+      - cms-updates/run-cms-updates:
           name: diebenkorn
           executor: cms-updates/pantheon
           method: "wpcli"
