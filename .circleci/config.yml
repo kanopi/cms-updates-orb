@@ -1015,7 +1015,7 @@ orbs:
 jobs:
   # Used for Extracting Orb
   extract-inline:
-    executor: orb-tools/alpine
+    executor: ci-tools/alpine
     steps:
       - checkout
       - ci-tools/install-item:
