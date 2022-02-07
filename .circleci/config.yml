@@ -203,22 +203,6 @@ params: &params
   cms-updates-config-repo: '<<parameters.cms-updates-config-repo>>'
   cms-updates-version: '<<parameters.cms-updates-version>>'
 
-# Param Values that are fed from the Pipeline
-# Submitted through a POST to create a new pipeline
-# pipeline-params: &pipeline-params
-#   executor: '<<pipeline.parameters.executor>>'
-#   site: '<<pipeline.parameters.site>>'
-#   cms: '<<pipeline.parameters.cms>>'
-#   repo: '<<pipeline.parameters.repo>>'
-#   pr-branch: '<<pipeline.parameters.pr-branch>>'
-#   db-type: '<<pipeline.parameters.db-type>>'
-#   docroot: '<<pipeline.parameters.docroot>>'
-#   update-branch: '<<pipeline.parameters.update-branch>>'
-#   site-hosting: '<<pipeline.parameters.site-hosting>>'
-#   site-id: '<<pipeline.parameters.site-id>>'
-#   site-env: '<<pipeline.parameters.site-env>>'
-#   method: '<<pipeline.parameters.method>>'
-
 # Default DB Environment Variables
 db-env-vars: &db-env-vars
   MYSQL_ROOT_PASSWORD: root
@@ -256,41 +240,6 @@ memcache-version: &memcache-version
   description: "Tag used for Memcache version: Image: memcached"
   type: string
   default: 'alpine'
-
-###########
-### Pipeline Configuration
-###########
-# parameters:
-#   run_update:
-#     description: 'Allow the updates to be ran.'
-#     type: boolean
-#     default: true
-#   executor:
-#     <<: *executor
-#   site:
-#     <<: *site
-#   cms:
-#     <<: *cms
-#   repo:
-#     <<: *repo
-#   pr-branch:
-#     <<: *pr-branch
-#   db-type:
-#     <<: *db-type
-#   docroot:
-#     <<: *docroot
-#   update-branch:
-#     <<: *update-branch
-#   site-hosting:
-#     <<: *site-hosting
-#   site-id:
-#     <<: *site-id
-#   site-env:
-#     <<: *site-env
-#   method:
-#     <<: *method
-#   orb-version:
-#     <<: *orb-version
 
 ###########
 ### Custom Orbs
@@ -780,10 +729,101 @@ orbs:
           Used for pulling database from Acquia
         parameters:
           <<: *default-params
+          db-host: *db-host
+          db-user: *db-user
+          db-pass: *db-pass
+          key:
+            type: string
+            default: ${ACQUI_CLI_KEY}
+          secret:
+            type: string
+            default: "${ACQUIA_CLI_SECRET}"
         steps:
+          - ci-tools/install-jq
+          - ci-tools/install-acquia-cli
           - run:
-              name: Test
-              command: echo "Hello"
+              name: Authenticate to Acquia
+              command: | 
+                acli auth:login --key='<< parameters.key >>' --secret='<< parameters.secret >>' --no-interaction
+          - run:
+              name: Pull Acquia DB
+              command: |
+                # Create Local Database                
+                create_db () {
+                  local DB=$1
+                  local DOWNLOAD_FILE=$2
+                  local MYSQL_PASSWORD=<<parameters.db-pass>>
+                  local MYSQL_HOST=<<parameters.db-host>>
+                  local MYSQL_USER=<<parameters.db-user>>
+
+                  [[ "${DB}" == "" ]] || [[ "${DOWNLOAD_FILE}" == "" ]] || [[ ! -f ${DOWNLOAD_FILE} ]] && echo "Database name required and or Downloaded file does not exist..." && exit 1;
+                  mysql -u root -p${MYSQL_PASSWORD} -h ${MYSQL_HOST} -e "DROP DATABASE IF EXISTS ${DB};"
+                  mysql -u root -p${MYSQL_PASSWORD} -h ${MYSQL_HOST} -e "CREATE DATABASE IF NOT EXISTS \`${DB}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+                  mysql -u root -p${MYSQL_PASSWORD} -h ${MYSQL_HOST} -e "GRANT ALL PRIVILEGES ON \`${DB}\`.* TO \`${MYSQL_USER}\`";
+                  zcat < ${DOWNLOAD_FILE} | mysql -u ${MYSQL_USER} -p${MYSQL_PASSWORD} -h ${MYSQL_HOST} ${DB}
+                }
+
+                # Pull Database from Acquia...
+                pull_db () {
+                  local ACQUIA_SITE=$1
+                  local ACQUIA_ENV=$2
+                  local AC_DB=$3
+                  DOWNLOAD_FILE=/tmp/${ACQUIA_SITE}.${ACQUIA_ENV}.${AC_DB}.sql.gz
+
+                  [[ "${AC_DB}" == "" ]] && return;
+
+                  if [[ ! -f $DOWNLOAD_FILE ]] || [[ ! -z $(find ${DOWNLOAD_FILE} -mmin +360) ]] || [[ "${LIVE}" != "" ]]; then
+
+                      if [[ -f "${DOWNLOAD_FILE}" ]]; then
+                        echo "${DOWNLOAD_FILE} needs updating..."
+                        rm -rf $DOWNLOAD_FILE || true
+                      fi
+
+                      if [[ ! -z $(find ${DOWNLOAD_FILE} -mmin +360) ]] || [[ "${LIVE}" != "" ]]; then
+                        echo "Deleting old file..."
+                        rm -rf $DOWNLOAD_FILE || true
+                      fi
+
+                      if [[ "${LIVE}" == "" ]]; then
+                        echo "Getting Last Backup..."
+                        DOWNLOAD_ID=$(acli --no-interaction api:environments:database-backup-list --limit 1 -- ${ACQUIA_SITE}.${ACQUIA_ENV} ${AC_DB} | jq .[].id -r)
+                      fi
+
+                      if [[ "${DOWNLOAD_ID}" == "" ]]; then
+                        echo "Creating Backup..."
+                        NOTIFICATION_ID=$(acli --no-interaction api:environments:database-backup-create ${ACQUIA_SITE}.${ACQUIA_ENV} ${AC_DB} | jq -r ._links.notification.href | sed 's#https://cloud.acquia.com/api/notifications/##')
+                        STATUS=$(acli --no-interaction api:notifications:find ${NOTIFICATION_ID} | jq -r .status)
+                        while [[ "${STATUS}" != "completed" ]]; do
+                          sleep ${SLEEP_TIME}
+                          echo "Checking Backup Status..."
+                          STATUS=$(acli --no-interaction api:notifications:find ${NOTIFICATION_ID} | jq -r .status)
+                        done
+
+                        DOWNLOAD_ID=$(acli --no-interaction api:environments:database-backup-list --limit 1 -- ${ACQUIA_SITE}.${ACQUIA_ENV} ${AC_DB} | jq .[].id -r)
+                      fi
+
+                      if [[ "${DOWNLOAD_ID}" == "" ]]; then
+                          echo "Issue creating backup on Acquia..."
+                          exit 1
+                      fi
+
+                      echo "Getting Download Url..."
+                      DOWNLOAD_URL=$(acli --no-interaction api:environments:database-backup-download -- ${ACQUIA_SITE}.${ACQUIA_ENV} ${AC_DB} ${DOWNLOAD_ID} | jq .url -r)
+
+                      echo "Downloading Backup..."
+                      curl -fsSL -o ${DOWNLOAD_FILE} ${DOWNLOAD_URL}
+                  fi
+
+                  echo "Importing Database..."
+                  create_db $AC_DB $DOWNLOAD_FILE
+                }
+
+                for DB in $(acli --no-interaction api:environments:database-list <<parameters.site-id>>.<<parameters.site-env>> | jq -r .[].name)
+                do
+                  echo "Starting on database ${DB}..."
+                  pull_db <<parameters.site-id>> <<parameters.site-env>> $DB
+                done
+
 
       ## Pull DB from WPEngine
       wpengine-pull-db:
@@ -871,6 +911,14 @@ orbs:
                     name: Link Config
                     command: |
                       sudo ln -sf ${HOME}/config/config/pantheon/pantheon.ini /etc/php.d/pantheon.ini
+          - when:
+              condition:
+                equal: ["acquia", <<parameters.site-hosting>>]
+              steps:
+                - run:
+                    name: Install PHP Packages
+                    command: | 
+                      sudo pecl update-channels                      
 
       #############
       ## Update CMS
