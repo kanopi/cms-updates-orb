@@ -203,22 +203,6 @@ params: &params
   cms-updates-config-repo: '<<parameters.cms-updates-config-repo>>'
   cms-updates-version: '<<parameters.cms-updates-version>>'
 
-# Param Values that are fed from the Pipeline
-# Submitted through a POST to create a new pipeline
-# pipeline-params: &pipeline-params
-#   executor: '<<pipeline.parameters.executor>>'
-#   site: '<<pipeline.parameters.site>>'
-#   cms: '<<pipeline.parameters.cms>>'
-#   repo: '<<pipeline.parameters.repo>>'
-#   pr-branch: '<<pipeline.parameters.pr-branch>>'
-#   db-type: '<<pipeline.parameters.db-type>>'
-#   docroot: '<<pipeline.parameters.docroot>>'
-#   update-branch: '<<pipeline.parameters.update-branch>>'
-#   site-hosting: '<<pipeline.parameters.site-hosting>>'
-#   site-id: '<<pipeline.parameters.site-id>>'
-#   site-env: '<<pipeline.parameters.site-env>>'
-#   method: '<<pipeline.parameters.method>>'
-
 # Default DB Environment Variables
 db-env-vars: &db-env-vars
   MYSQL_ROOT_PASSWORD: root
@@ -256,41 +240,6 @@ memcache-version: &memcache-version
   description: "Tag used for Memcache version: Image: memcached"
   type: string
   default: 'alpine'
-
-###########
-### Pipeline Configuration
-###########
-# parameters:
-#   run_update:
-#     description: 'Allow the updates to be ran.'
-#     type: boolean
-#     default: true
-#   executor:
-#     <<: *executor
-#   site:
-#     <<: *site
-#   cms:
-#     <<: *cms
-#   repo:
-#     <<: *repo
-#   pr-branch:
-#     <<: *pr-branch
-#   db-type:
-#     <<: *db-type
-#   docroot:
-#     <<: *docroot
-#   update-branch:
-#     <<: *update-branch
-#   site-hosting:
-#     <<: *site-hosting
-#   site-id:
-#     <<: *site-id
-#   site-env:
-#     <<: *site-env
-#   method:
-#     <<: *method
-#   orb-version:
-#     <<: *orb-version
 
 ###########
 ### Custom Orbs
