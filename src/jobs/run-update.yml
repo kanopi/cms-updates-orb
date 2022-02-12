@@ -24,7 +24,6 @@ parameters:
     description: "The name of the branch to run updates with."
     type: string
     default: "cms-updates/$(date +%F)"
-
   site-hosting:
     description: "What hosting is the site using?"
     type: enum
@@ -40,7 +39,8 @@ parameters:
   db-type:
     description: "What is the method for pulling the database."
     type: enum
-    enum: [ "acquia", "drush", "general", "pantheon", "wpcli", "wpengine" ]
+    enum: [ "acquia", "custom", "drush", "pantheon", "wpcli", "wpengine" ]
+    default: "custom"
   update-method:
     description: "The update-method used for running updates."
     type: enum
@@ -159,39 +159,51 @@ steps:
               sudo apt install mysql-client
         - when:
             condition:
-              equal: ["pantheon", <<parameters.db-type>>]
+              equal: ["pantheon", <<parameters.site-hosting>>]
             steps:
               - pull-db-pantheon:
                   site-id: '<<parameters.site-id>>'
                   site-env: '<<parameters.site-env>>'
         - when:
             condition:
-              equal: ["acquia", <<parameters.db-type>>]
+              equal: ["acquia", <<parameters.site-hosting>>]
             steps:
               - pull-db-acquia:
                   site-id: '<<parameters.site-id>>'
                   site-env: '<<parameters.site-env>>'
         - when:
             condition:
-              equal: ["wpengine", <<parameters.db-type>>]
+              equal: ["wpengine", <<parameters.site-hosting>>]
             steps:
               - pull-db-wpengine:
                   site-id: '<<parameters.site-id>>'
                   site-env: '<<parameters.site-env>>'
         - when:
             condition:
-              equal: ["drush", <<parameters.db-type>>]
+              equal: ["general", <<parameters.site-hosting>>]
             steps:
-              - pull-db-drush:
-                  site-id: '<<parameters.site-id>>'
-                  site-env: '<<parameters.site-env>>'
-        - when:
-            condition:
-              equal: ["wpcli", <<parameters.db-type>>]
-            steps:
-              - pull-db-wpcli:
-                  site-id: '<<parameters.site-id>>'
-                  site-env: '<<parameters.site-env>>'
+              # Replace
+              - when:
+                  condition:
+                    equal: ["drush", <<parameters.db-type>>]
+                  steps:
+                    - run:
+                        name: "Test"
+                        command: echo "CUSTOM DB PULL"
+              - when:
+                  condition:
+                    equal: ["drush", <<parameters.db-type>>]
+                  steps:
+                    - pull-db-drush:
+                        site-id: '<<parameters.site-id>>'
+                        site-env: '<<parameters.site-env>>'
+              - when:
+                  condition:
+                    equal: ["wpcli", <<parameters.db-type>>]
+                  steps:
+                    - pull-db-wpcli:
+                        site-id: '<<parameters.site-id>>'
+                        site-env: '<<parameters.site-env>>'
 
   # Run Updates on CMS
   - when:

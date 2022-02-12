@@ -2,6 +2,7 @@ version: 2.1
 
 orbs:
   cms-updates: kanopi/cms-updates@<<pipeline.parameters.dev-orb-version>>
+  ci-tools: kanopi/ci-tools:@1.10.0
   orb-tools: circleci/orb-tools@9.0.0
   slack: circleci/slack@3.4.2
 
@@ -19,6 +20,22 @@ parameters:
     type: string
     default: "1.0.0"
 
+# Jobs
+jobs:
+  modify-default-value:
+    executor: ci-tools/alpine
+    steps:
+      - checkout
+      - ci-tools/install-yq
+      - run:
+          name: Modify Default Value
+          command: |
+            VERSION=${CIRCLE_SHA1:0:7} yq eval '.parameters.cms-updates-version.default = env(VERSION)' src/jobs/run-update.yml
+      - persist_to_workspace:
+          root: .
+          paths:
+            - src
+
 ###########
 ### Workflows
 ###########
@@ -26,11 +43,23 @@ workflows:
   build_test:
     unless: << pipeline.parameters.run-integration-tests >>
     jobs:
+
+      # Modify the Value of the Current Version
+      - modify-default-value
+
       # Lint yml files to make sure formatted
-      - orb-tools/lint
+      - orb-tools/lint:
+          checkout: false
+          attach-workspace: true
+          requires:
+            - modify-default-value
 
       # Pack Everything in src directory to orb.yml
-      - orb-tools/pack
+      - orb-tools/pack:
+          checkout: false
+          attach-workspace: true
+          requires:
+            - modify-default-value
 
       # If is a branch publish dev version
       - orb-tools/publish-dev:
@@ -46,15 +75,27 @@ workflows:
           post-steps:
             - slack/notify:
                 title: "New Dev Version of CMS Updates!!!!"
-                message: "Kanopi CMS Update Orb has published new dev version: kanopi/cms-updates@$dev:${CIRCLE_SHA1:0:7}"
+                message: "Kanopi CMS Update Orb has published new dev version: kanopi/cms-updates@dev:${CIRCLE_SHA1:0:7}"
                 include_visit_job_action: false
                 include_job_number_field: false
                 include_project_field: false
 
-
   build_deploy:
     when: << pipeline.parameters.run-integration-tests >>
     jobs:
+      - cms-updates/run-update:
+          name: "COIT"
+          executor: cms-updates/pantheon
+          cms: "drupal"
+          repo: "git@github.com:kanopi/coit-8"
+          pr-branch: "main"
+          docroot: "web"
+          update-branch: "cms-updates/test"
+          site-host: "pantheon"
+          site-id: "coit-main"
+          site-env: "live"
+          update-method: "composer"
+
       # If is a release publish version
       - orb-tools/publish:
           orb-ref: kanopi/cms-updates@${CIRCLE_TAG}
@@ -67,6 +108,6 @@ workflows:
                 include_project_field: false
           filters:
             tags:
-              only: /.*/
+              only: /[0-9]+\.[0-9]+\.[0-9]+/
             branches:
               ignore: /.*/
