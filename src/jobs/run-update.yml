@@ -1,5 +1,4 @@
-executor:
-  name: <<parameters.executor>>
+executor: <<parameters.executor>>
 parameters:
   executor:
     description: "The executor to run this process for"
@@ -25,6 +24,7 @@ parameters:
     description: "The name of the branch to run updates with."
     type: string
     default: "cms-updates/$(date +%F)"
+
   site-hosting:
     description: "What hosting is the site using?"
     type: enum
@@ -37,8 +37,12 @@ parameters:
     description: "The environment on the remote host to pull information from."
     type: string
     default: ""
+  db-type:
+    description: "What is the method for pulling the database."
+    type: enum
+    enum: [ "acquia", "drush", "general", "pantheon", "wpcli", "wpengine" ]
   update-method:
-    description: "The method used for running updates."
+    description: "The update-method used for running updates."
     type: enum
     enum: [ "composer", "drush", "wpcli" ]
   update-message:
@@ -199,7 +203,7 @@ steps:
             steps:
               - run-update:
                   cms: 'drupal7'
-                  method: <<parameters.method>>
+                  update-method: <<parameters.update-method>>
                   docroot: <<parameters.docroot>>
                   composer-version: <<parameters.composer-version>>
   - when:
@@ -214,7 +218,7 @@ steps:
             steps:
               - run-update:
                   cms: 'drupal'
-                  method: <<parameters.method>>
+                  update-method: <<parameters.update-method>>
                   docroot: <<parameters.docroot>>
                   composer-version: <<parameters.composer-version>>
   - when:
@@ -226,7 +230,7 @@ steps:
             steps:
               - run-update:
                   cms: 'wordpress'
-                  method: <<parameters.method>>
+                  update-method: <<parameters.update-method>>
                   docroot: <<parameters.docroot>>
                   composer-version: <<parameters.composer-version>>
 

@@ -1,348 +1,67 @@
 version: 2.1
 
-###########
-### Reusable Variables
-###########
-
-# All Tags and Branches
-all-filters: &all-filters
-  tags:
-    only: /.*/
-  branches:
-    only: /.*/
-
-# Only on Branches
-dev-filters: &dev-filters
-  tags:
-    ignore: /.*/
-  branches:
-    only: /.*/
-
-# Only on Tags
-prod-filters: &prod-filters
-  tags:
-    only: /.*/
-  branches:
-    ignore: /.*/
-
-# Requirements for the tests to start running.
-test-pretest: &test-pretest
-  [
-    orb-tools/lint
-  ]
-
-# Requirements for the rest of the process to finish.
-test-requirements: &test-requirements
-  [
-    orb-tools/lint
-  ]
-
-checkout-path: &checkout-path "/home/circleci/project-update"
-
-executor: &executor
-  description: "The executor to run this process for"
-  type: executor
-site: &site
-  description: "The name of the site being updated."
-  type: string
-  default: ""
-cms: &cms
-  description: "Type of CMS to run updates on."
-  type: enum
-  enum: ["drupal", "drupal7", "drupal8", "drupal9", "wordpress"]
-repo: &repo
-  description: "The url to use for cloning the repo"
-  type: string
-  default: "${CIRCLE_REPOSITORY_URL}"
-pr-branch: &pr-branch
-  description: "What is the main branch of the project that should be used."
-  type: string
-  default: "${CIRCLE_BRANCH}"
-db-type: &db-type
-  description: "What is the method for pulling the database."
-  type: enum
-  enum: ["acquia", "drush", "general", "pantheon", "wpcli", "wpengine"]
-docroot: &docroot
-  description: "Where is the DOCROOT of the project?"
-  type: string
-  default: '.'
-site-hosting: &site-hosting
-  description: "What hosting is the site using?"
-  type: enum
-  enum: ["general", "pantheon"]
-site-id: &site-id
-  description: "The site name on the remote host to pull information from"
-  type: string
-  default: ""
-site-env: &site-env
-  description: "The environment on the remote host to pull information from."
-  type: string
-  default: ""
-steps: &steps
-  description: "Steps executed"
-  type: steps
-  default: []
-hook: &hook
-  description: "The name of the hook being executed."
-  type: string
-update-branch: &update-branch
-  description: "The name of the branch to run updates with."
-  type: string
-  default: "cms-updates/$(date +%F)"
-path: &path
-  description: "Path to checkout the project from."
-  type: string
-  default: *checkout-path
-update: &update
-  description: "Steps to take as part of the update process."
-  type: steps
-  default: []
-db-file: &db-file
-  description: "Where to store the database file when exported from the host."
-  type: string
-  default: "/tmp/db.sql.gz"
-db-host: &db-host
-  description: "The hostname for accessing the database within CircleCI."
-  type: string
-  default: 'db'
-db-user: &db-user
-  description: "The user for accessing the database within CircleCI."
-  type: string
-  default: 'user'
-db-pass: &db-pass
-  description: "The password for accessing the database within CircleCI."
-  type: string
-  default: 'user'
-db-name: &db-name
-  description: "The name of the database for accessing the database within CircleCI."
-  type: string
-  default: 'default'
-method: &method
-  description: "The method used for running updates."
-  type: enum
-  enum: ["composer", "drush", "wpcli"]
-update-message: &update-message
-  description: "Commit message used for changed items."
-  type: string
-  default: 'Automated Updated'
-orb-version: &orb-version
-  description: "Is this running from the orb?"
-  type: boolean
-  default: true
-dockerhub-user: &dockerhub-user
-  description: "Dockerhub User Name"
-  type: string
-  default: "${DOCKERHUB_USER}"
-dockerhub-pass: &dockerhub-pass
-  description: "Dockerhub User Password"
-  type: string
-  default: "${DOCKERHUB_PASS}"
-git-name: &git-name
-  description: "The name to use for commits"
-  type: string
-  default: "${GIT_NAME}"
-git-email: &git-email
-  description: "The email to use for commits"
-  type: string
-  default: "${GIT_EMAIL}"
-composer-version: &composer-version
-  description: "Version of composer to use. Default 2.x"
-  type: enum
-  default: '2'
-  enum: ['1', '2']
-cms-updates-config-repo: &cms-updates-config-repo
-  description: "The repo to pull down from the configuration."
-  type: string
-  default: "git@github.com:kanopi/cms-updates"
-cms-updates-version: &cms-updates-version
-  description: "Version of CMS Updates Script Download"
-  type: string
-  default: 'main'
-
-ci-tools-version: &ci-tools-version "kanopi/ci-tools@1.8.3"
-
-# The default parameters to use for steps.
-default-params: &default-params
-  site: *site
-  path: *path
-  cms: *cms
-  repo: *repo
-  pr-branch: *pr-branch
-  db-type: *db-type
-  docroot: *docroot
-  update-branch: *update-branch
-  site-hosting: *site-hosting
-  site-id: *site-id
-  site-env: *site-env
-  method: *method
-  update-message: *update-message
-  orb-version: *orb-version
-  git-name: *git-name
-  git-email: *git-email
-  composer-version: *composer-version
-  cms-updates-config-repo: *cms-updates-config-repo
-  cms-updates-version: *cms-updates-version
-
-# Param Values that are used throughout the Orb
-params: &params
-  path: '<<parameters.path>>'
-  site: '<<parameters.site>>'
-  cms: '<<parameters.cms>>'
-  repo: '<<parameters.repo>>'
-  pr-branch: '<<parameters.pr-branch>>'
-  db-type: '<<parameters.db-type>>'
-  docroot: '<<parameters.docroot>>'
-  update-branch: '<<parameters.update-branch>>'
-  site-hosting: '<<parameters.site-hosting>>'
-  site-id: '<<parameters.site-id>>'
-  site-env: '<<parameters.site-env>>'
-  method: '<<parameters.method>>'
-  update-message: '<<parameters.update-message>>'
-  orb-version: <<parameters.orb-version>>
-  composer-version: <<parameters.composer-version>>
-  cms-updates-config-repo: '<<parameters.cms-updates-config-repo>>'
-  cms-updates-version: '<<parameters.cms-updates-version>>'
-
-# Default DB Environment Variables
-db-env-vars: &db-env-vars
-  MYSQL_ROOT_PASSWORD: root
-  MYSQL_DATABASE: default
-  MYSQL_USER: user
-  MYSQL_PASSWORD: user
-
-# Default PHP Environment Variables
-php-env-vars: &php-env-vars
-  DB_HOST: db
-  DB_PORT: 3306
-  DB_NAME: default
-  DB_USER: user
-  DB_PASS: user
-  TZ: America/Los_Angeles
-
-# Stack Versions to use
-php-version: &php-version
-  description: "Tag used for PHP version. Image: cimg/php"
-  type: string
-  default: '7.4'
-db-version: &db-version
-  description: "Tag used for MySQL version. Image: mariadb"
-  type: string
-  default: '10.4'
-redis-version: &redis-version
-  description: "Tag used for Redis version. Image: redis"
-  type: string
-  default: '5-alpine'
-solr-version: &solr-version
-  description: "Tag used for Solr version. Image: solr"
-  type: string
-  default: '8-slim'
-memcache-version: &memcache-version
-  description: "Tag used for Memcache version: Image: memcached"
-  type: string
-  default: 'alpine'
-
-###########
-### Custom Orbs
-###########
 orbs:
-  ci-tools: kanopi/ci-tools@1.10.0
+  cms-updates: kanopi/cms-updates@<<pipeline.parameters.dev-orb-version>>
   orb-tools: circleci/orb-tools@9.0.0
   slack: circleci/slack@3.4.2
 
-
-jobs:
-  # Used for Extracting Orb
-  extract-inline:
-    executor: orb-tools/alpine
-    steps:
-      - checkout
-      - ci-tools/install-item:
-          url: https://github.com/geofffranks/spruce/releases/download/v1.27.0/spruce-linux-amd64
-          save-as: 'spruce'
-      - ci-tools/install-yq
-      - run:
-          name: Merge Anchors and References
-          command: spruce merge .circleci/config.yml > merged-config.yml
-      - run:
-          name: Extract Orb
-          command: yq r merged-config.yml orbs.custom > src/cms-updates.yml
-      - store_artifacts:
-          path: src
-      - persist_to_workspace:
-          paths:
-            - src/cms-updates.yml
-          root: .
-      - run:
-          name: Display Extracted Orb
-          command: cat src/cms-updates.yml
-
-  # Notify at end of
-  notify-publish-dev:
-    executor: ci-tools/alpine
-    steps:
-      - checkout
-      - slack/notify:
-          title: "New Dev Version of CMS Updates!!!!"
-          footer: "Last commit: $(git log -1 --pretty=%B) (${CIRCLE_SHA1:0:7})"
-          message: "Kanopi CMS Update Orb has published dev version: kanopi/cms-updates@dev:${CIRCLE_SHA1:0:7}"
-          include_visit_job_action: false
-          include_job_number_field: false
-          include_project_field: false
-
-  # Notify at end of published
-  notify-publish:
-    executor: ci-tools/alpine
-    steps:
-      - checkout
-      - slack/notify:
-          title: "New Version of CMS Updates!!!!"
-          message: "Kanopi CMS Update Orb has published new version: kanopi/cms-updates@${CIRCLE_TAG}"
-          footer: "Last commit: $(git log -1 --pretty=%B) (${CIRCLE_SHA1:0:7})"
-          include_visit_job_action: false
-          include_job_number_field: false
-          include_project_field: false
+# Pipeline Parameters
+parameters:
+  run-integration-tests:
+    description: An internal flag to prevent integration test from running before a development version has been created.
+    type: boolean
+    default: false
+  dev-orb-version:
+    description: >
+      The development version of the orb to test.
+      This value is automatically adjusted by the "trigger-integration-tests-workflow" job to correspond with the specific version created by the commit and should not be edited.
+      A "dev:alpha" version must exist for the initial pipeline run.
+    type: string
+    default: "1.0.0"
 
 ###########
 ### Workflows
 ###########
 workflows:
-  version: 2.1
-  build:
+  build_test:
+    unless: << pipeline.parameters.run-integration-tests >>
     jobs:
       # Lint yml files to make sure formatted
-      - orb-tools/lint:
-          filters: *all-filters
-
-      # Extract the orb from the config and test
-      - extract-inline:
-          filters: *all-filters
-          requires: *test-requirements
+      - orb-tools/lint
 
       # Pack Everything in src directory to orb.yml
-      - orb-tools/pack:
-          filters: *all-filters
-          requires: [extract-inline]
-          attach-workspace: true
+      - orb-tools/pack
 
       # If is a branch publish dev version
       - orb-tools/publish-dev:
-          filters: *dev-filters
-          requires: [orb-tools/pack]
           orb-name: kanopi/cms-updates
+          requires:
+            - orb-tools/lint
+            - orb-tools/pack
 
-      # Slack notify about the orb dev version being published
-      - notify-publish-dev:
-          filters: *dev-filters
-          requires: [orb-tools/publish-dev]
+      - orb-tools/trigger-integration-tests-workflow:
+          name: trigger-integration-dev
+          requires:
+            - orb-tools/publish-dev
+          post-steps:
+            - slack/notify:
+                title: "New Version of CMS Updates!!!!"
+                message: "Kanopi CMS Update Orb has published new version: kanopi/cms-updates@${CIRCLE_TAG}"
+                include_visit_job_action: false
+                include_job_number_field: false
+                include_project_field: false
 
+
+  build_deploy:
+    when: << pipeline.parameters.run-integration-tests >>
+    jobs:
       # If is a release publish version
       - orb-tools/publish:
-          filters: *prod-filters
-          requires: [orb-tools/pack]
           orb-ref: kanopi/cms-updates@${CIRCLE_TAG}
-          attach-workspace: true
-
-      # Slack notify about the orb being published
-      - notify-publish:
-          filters: *prod-filters
-          requires: [orb-tools/publish]
+          post-steps:
+            - slack/notify:
+                title: "New Version of CMS Updates!!!!"
+                message: "Kanopi CMS Update Orb has published new version: kanopi/cms-updates@${CIRCLE_TAG}"
+                include_visit_job_action: false
+                include_job_number_field: false
+                include_project_field: false

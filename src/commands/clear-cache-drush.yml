@@ -1,8 +1,7 @@
 parameters:
   cms:
     description: "Type of CMS to run updates on."
-    type: enum
-    enum: [ "drupal", "drupal7", "drupal8", "drupal9" ]
+    type: string
   docroot:
     description: "Where is the DOCROOT of the project?"
     type: string

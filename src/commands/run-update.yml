@@ -3,8 +3,8 @@ parameters:
     description: "Type of CMS to run updates on."
     type: enum
     enum: [ "drupal", "drupal7", "drupal8", "drupal9", "wordpress" ]
-  method:
-    description: "The method used for running updates."
+  update-method:
+    description: "The update-method used for running updates."
     type: enum
     enum: [ "composer", "drush", "wpcli" ]
   docroot:
@@ -19,7 +19,7 @@ parameters:
 steps:
   - when:
       condition:
-        equal: ["drush", <<parameters.method>>]
+        equal: ["drush", <<parameters.update-method>>]
       steps:
         - clear-cache-drush:
             cms: <<parameters.cms>>
@@ -44,7 +44,7 @@ steps:
             docroot: <<parameters.docroot>>
   - when:
       condition:
-        equal: ["composer", <<parameters.method>>]
+        equal: ["composer", <<parameters.update-method>>]
       steps:
         - run:
             name: Install Tools
@@ -99,7 +99,7 @@ steps:
             cms: <<parameters.cms>>
   - when:
       condition:
-        equal: ["wpcli", <<parameters.method>>]
+        equal: ["wpcli", <<parameters.update-method>>]
       steps:
         - clear-cache-wpcli:
             docroot: <<parameters.docroot>>

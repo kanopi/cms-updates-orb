@@ -8,3 +8,4 @@ display:
 
 orbs:
   ci-tools: kanopi/ci-tools@1.10.0
+  orb-tools: circleci/orb-tools@10.1.0
