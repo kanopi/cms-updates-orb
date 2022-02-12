@@ -22,10 +22,12 @@ docker:
       password: $DOCKERHUB_PASS
     environment:
       HOSTING: pantheon
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: default
-      MYSQL_USER: user
-      MYSQL_PASSWORD: user
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: default
+      DB_USER: user
+      DB_PASS: user
+      TZ: America/Los_Angeles
       CACHE_HOST: redis
       CACHE_PORT: 6379
       INDEX_HOST: solr
@@ -41,12 +43,10 @@ docker:
       username: $DOCKERHUB_USER
       password: $DOCKERHUB_PASS
     environment:
-      DB_HOST: db
-      DB_PORT: 3306
-      DB_NAME: default
-      DB_USER: user
-      DB_PASS: user
-      TZ: America/Los_Angeles
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: default
+      MYSQL_USER: user
+      MYSQL_PASSWORD: user
   - image: solr:<<parameters.search-version>>
     name: solr
     auth:
