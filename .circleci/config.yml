@@ -46,7 +46,7 @@ workflows:
           post-steps:
             - slack/notify:
                 title: "New Dev Version of CMS Updates!!!!"
-                message: "Kanopi CMS Update Orb has published new dev version: kanopi/cms-updates@$dev::${CIRCLE_SHA1:0:7}"
+                message: "Kanopi CMS Update Orb has published new dev version: kanopi/cms-updates@$dev:${CIRCLE_SHA1:0:7}"
                 include_visit_job_action: false
                 include_job_number_field: false
                 include_project_field: false
