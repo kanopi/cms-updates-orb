@@ -91,7 +91,7 @@ workflows:
           pr-branch: "main"
           docroot: "web"
           update-branch: "cms-updates/test"
-          site-host: "pantheon"
+          site-hosting: "pantheon"
           site-id: "coit-main"
           site-env: "live"
           update-method: "composer"
