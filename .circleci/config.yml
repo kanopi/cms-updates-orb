@@ -65,3 +65,8 @@ workflows:
                 include_visit_job_action: false
                 include_job_number_field: false
                 include_project_field: false
+          filters:
+            tags:
+              only: /.*/
+            branches:
+              ignore: /.*/
