@@ -1,0 +1,26 @@
+description: >
+  Command to pull database from Pantheon
+parameters:
+  site-id:
+    description: "The site name on the remote host to pull information from"
+    type: string
+    default: ${HOST_SITE_ID}
+  site-env:
+    description: "The environment on the remote host to pull information from."
+    type: string
+    default: ${HOST_SITE_ENV}
+  token:
+    type: string
+    default: ${TERMINUS_TOKEN}
+steps:
+  - ci-tools/install-terminus
+  - run:
+      name: Authenticate to Terminus
+      command: |
+        terminus auth:login --machine-token=<<parameters.token>>
+  - run:
+      name: Create and Pull Database From Pantheon
+      command: |
+        terminus backup:create <<parameters.site-id>>.<<parameters.site-env>> --element=db
+        terminus backup:get <<parameters.site-id>>.<<parameters.site-env>> --element="db" --to="/tmp/db.sql.gz"
+        zcat < /tmp/db.sql.gz | mysql -h ${MYSQL_HOST} -u ${MYSQL_USER} -p${MYSQL_PASSWORD} ${MYSQL_DATABASE}

@@ -1,0 +1,6 @@
+description: >
+  Used for pulling database from WP Engine
+steps:
+  - run:
+      name: Test
+      command: echo "Hello"

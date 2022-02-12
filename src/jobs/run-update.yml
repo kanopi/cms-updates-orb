@@ -1,0 +1,283 @@
+executor:
+  name: <<parameters.executor>>
+parameters:
+  executor:
+    description: "The executor to run this process for"
+    type: executor
+  cms:
+    description: "Type of CMS to run updates on."
+    type: enum
+    enum: [ "drupal", "drupal7", "drupal8", "drupal9", "wordpress" ]
+  repo:
+    description: "The url to use for cloning the repo"
+    type: string
+    default: "${CIRCLE_REPOSITORY_URL}"
+  pr-branch:
+    description: "What is the main branch of the project that should be used."
+    type: string
+    default: "${CIRCLE_BRANCH}"
+  docroot:
+    description: "Where is the DOCROOT of the project?"
+    type: string
+    default: '.'
+  update-branch:
+    # Should we make this a standard name???
+    description: "The name of the branch to run updates with."
+    type: string
+    default: "cms-updates/$(date +%F)"
+  site-hosting:
+    description: "What hosting is the site using?"
+    type: enum
+    enum: [ "general", "pantheon" ]
+  site-id:
+    description: "The site name on the remote host to pull information from"
+    type: string
+    default: ""
+  site-env:
+    description: "The environment on the remote host to pull information from."
+    type: string
+    default: ""
+  update-method:
+    description: "The method used for running updates."
+    type: enum
+    enum: [ "composer", "drush", "wpcli" ]
+  update-message:
+    description: "Commit message used for changed items."
+    type: string
+    default: 'Automated Updated'
+  orb-version:
+    description: "Is this running from the orb?"
+    type: boolean
+    default: false
+  git-name:
+    description: "The name to use for commits"
+    type: string
+    default: "${GIT_NAME}"
+  git-email:
+    description: "The email to use for commits"
+    type: string
+    default: "${GIT_EMAIL}"
+  composer-version:
+    description: "Version of composer to use. Default 2.x"
+    type: enum
+    default: '2'
+    enum: [ '1', '2' ]
+  cms-updates-config-repo:
+    description: "The repo to pull down from the configuration."
+    type: string
+    default: "git@github.com:kanopi/cms-updates"
+  cms-updates-version:
+    description: "Version of CMS Updates Script Download"
+    type: string
+    default: 'main'
+steps:
+  # Add SSH Key
+  - ci-tools/copy-ssh-key:
+      decode-params: '-di'
+
+  # Configure Git Client
+  - orb-tools/configure-git:
+      user-name: <<parameters.git-name>>
+      user-email: <<parameters.git-email>>
+
+  # Install Tools
+  - ci-tools/install-github-cli:
+      version: '2.4.0'
+  - when:
+      condition:
+        or:
+          - equal: ["drupal7", <<parameters.cms>>]
+          - equal: ["drupal8", <<parameters.cms>>]
+          - equal: ["drupal9", <<parameters.cms>>]
+          - equal: ["drupal", <<parameters.cms>>]
+      steps:
+        - ci-tools/install-drush
+  - when:
+      condition:
+        equal: ["wordpress", <<parameters.cms>>]
+      steps:
+        - ci-tools/install-wpcli
+
+  # Download Configuration Repo
+  - run:
+      name: Install Configuration
+      command: |
+        git clone <<parameters.cms-updates-config-repo>> $HOME/config
+        cd $HOME/config
+        git checkout <<parameters.cms-updates-version>>
+
+  # Checkout Project
+  - run-step:
+      hook: 'checkout'
+      steps:
+        - run:
+            name: Checkout Project
+            command: git clone <<parameters.repo>> ${CIRCLE_WORKING_DIRECTORY}
+        - run:
+            name: Checkout Update Branch
+            command: git checkout -B <<parameters.update-branch>>
+        - run:
+            name: Checkout Branch to Main Branch
+            command: git reset --hard origin/<<parameters.pr-branch>>
+
+  # Start PHP Server
+  - run-step:
+      hook: 'start'
+      steps:
+        - when:
+            condition:
+              equal: ["pantheon", <<parameters.site-hosting>>]
+            steps:
+              - run:
+                  name: Install PHP Packages
+                  command: |
+                    sudo pecl update-channels
+                    sudo pecl install \
+                      redis
+              - run:
+                  name: Link Config
+                  command: |
+                    sudo ln -sf ${HOME}/config/config/pantheon/pantheon.ini /etc/php.d/pantheon.ini
+        - run:
+            name: Start PHP Server
+            command: php -S 0.0.0.0:80
+            background: true
+            path: <<parameters.docroot>>
+
+  # Pull Database From Remote
+  - run-step:
+      hook: 'db'
+      steps:
+        - run:
+            name: Install DB related tools
+            command: |
+              sudo apt update
+              sudo apt install mysql-client
+        - when:
+            condition:
+              equal: ["pantheon", <<parameters.db-type>>]
+            steps:
+              - pull-db-pantheon:
+                  site-id: '<<parameters.site-id>>'
+                  site-env: '<<parameters.site-env>>'
+        - when:
+            condition:
+              equal: ["acquia", <<parameters.db-type>>]
+            steps:
+              - pull-db-acquia:
+                  site-id: '<<parameters.site-id>>'
+                  site-env: '<<parameters.site-env>>'
+        - when:
+            condition:
+              equal: ["wpengine", <<parameters.db-type>>]
+            steps:
+              - pull-db-wpengine:
+                  site-id: '<<parameters.site-id>>'
+                  site-env: '<<parameters.site-env>>'
+        - when:
+            condition:
+              equal: ["drush", <<parameters.db-type>>]
+            steps:
+              - pull-db-drush:
+                  site-id: '<<parameters.site-id>>'
+                  site-env: '<<parameters.site-env>>'
+        - when:
+            condition:
+              equal: ["wpcli", <<parameters.db-type>>]
+            steps:
+              - pull-db-wpcli:
+                  site-id: '<<parameters.site-id>>'
+                  site-env: '<<parameters.site-env>>'
+
+  # Run Updates on CMS
+  - when:
+      condition:
+        equal: ["drupal7", <<parameters.cms>>]
+      steps:
+        - run-step:
+            hook: 'update'
+            steps:
+              - run-update:
+                  cms: 'drupal7'
+                  method: <<parameters.method>>
+                  docroot: <<parameters.docroot>>
+                  composer-version: <<parameters.composer-version>>
+  - when:
+      condition:
+        or:
+          - equal: ["drupal8", <<parameters.cms>>]
+          - equal: ["drupal9", <<parameters.cms>>]
+          - equal: ["drupal", <<parameters.cms>>]
+      steps:
+        - run-step:
+            hook: 'update'
+            steps:
+              - run-update:
+                  cms: 'drupal'
+                  method: <<parameters.method>>
+                  docroot: <<parameters.docroot>>
+                  composer-version: <<parameters.composer-version>>
+  - when:
+      condition:
+        equal: ["wordpress", <<parameters.cms>>]
+      steps:
+        - run-step:
+            hook: 'update'
+            steps:
+              - run-update:
+                  cms: 'wordpress'
+                  method: <<parameters.method>>
+                  docroot: <<parameters.docroot>>
+                  composer-version: <<parameters.composer-version>>
+
+  # Commit Changes
+  - run-step:
+      hook: 'commit'
+      steps:
+        - run:
+            name: Git Status
+            command: git status
+        - run:
+            name: Check Status
+            command: |
+              count=$(git status -s | wc -l  | tr -d '[:space:]')
+              if [[ $count -eq 0 ]]; then
+                echo "No updates found stopping build"
+                circleci-agent step halt
+              fi
+        - run:
+            name: Git Add
+            command: git add .
+        - run:
+            name: Git Commit
+            command: git commit -m "<<parameters.update-message>>"
+  # @Todo: Create Task in Teamwork
+  # @Todo: Create Entry in Harvest
+
+  # Push Changes to Remote Hosting
+  - run-step:
+      hook: 'push'
+      steps:
+        - run:
+            name: Push to Github
+            command: git push -f origin <<parameters.update-branch>>
+
+  # Create Pull Request In Remote
+  - run-step:
+      hook: 'create-pr'
+      steps:
+        - run:
+            name: Create/Update PR In Github
+            command: |
+              set -x
+              ID=$(gh pr list --head <<parameters.update-branch>> --json 'number' --jq '.[].number')
+              echo "ID Found: ${ID}"
+              if [[ "${ID}" == "" ]]; then
+                gh pr create \
+                  --base <<parameters.pr-branch>> \
+                  --title "Automated Updates" \
+                  --body-file /tmp/output.md
+              else
+                gh pr edit ${ID} \
+                  --body-file /tmp/output.md
+              fi

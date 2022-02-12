@@ -1,0 +1,26 @@
+parameters:
+  cms:
+    description: "Type of CMS to run updates on."
+    type: enum
+    enum: [ "drupal", "drupal7", "drupal8", "drupal9", "wordpress" ]
+  docroot:
+    description: "Where is the DOCROOT of the project?"
+    type: string
+    default: '.'
+steps:
+  - when:
+      condition:
+        or:
+          - equal: ["drupal", <<parameters.cms>>]
+          - equal: ["drupal8", <<parameters.cms>>]
+          - equal: ["drupal9", <<parameters.cms>>]
+      steps:
+        - clear-cache-drush:
+            cms: <<parameters.cms>>
+            docroot: <<parameters.docroot>>
+  - when:
+      condition:
+        equal: ["wordpress", <<parameters.cms>>]
+      steps:
+        - clear-cache-wpcli:
+            docroot: <<parameters.docroot>>

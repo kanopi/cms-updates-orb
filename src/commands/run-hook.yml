@@ -1,0 +1,13 @@
+description: >
+  Hook command to run at a particular point in the process
+parameters:
+  hook:
+    description: "The name of the hook being executed."
+    type: string
+steps:
+  - run:
+      name: Running Hook <<parameters.hook>>
+      command: |
+        if [[ -f .updates/<<parameters.hook>> ]]; then
+          .updates/<<parameters.hook>>
+        fi

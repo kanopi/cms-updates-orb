@@ -1,0 +1,16 @@
+description: >
+  Abstract command to run steps with hook integration.
+parameters:
+  hook:
+    description: "The name of the hook being executed."
+    type: string
+  steps:
+    description: "Steps executed"
+    type: steps
+    default: [ ]
+steps:
+  - run-hook:
+      hook: 'pre-<<parameters.hook>>'
+  - steps: << parameters.steps >>
+  - run-hook:
+      hook: 'post-<<parameters.hook>>'
