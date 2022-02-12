@@ -30,7 +30,7 @@ jobs:
       - run:
           name: Modify Default Value
           command: |
-            VERSION=${CIRCLE_SHA1:0:7} yq eval '.parameters.cms-updates-version.default = env(VERSION)' src/jobs/run-update.yml
+            VERSION=${CIRCLE_SHA1:0:7} yq eval -i '.parameters.cms-updates-version.default = env(VERSION)' src/jobs/run-update.yml
       - persist_to_workspace:
           root: .
           paths:
