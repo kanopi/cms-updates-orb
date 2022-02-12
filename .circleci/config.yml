@@ -95,6 +95,7 @@ workflows:
           site-id: "coit-main"
           site-env: "live"
           update-method: "composer"
+          context: kanopi-code
 
 #      # If is a release publish version
 #      - orb-tools/publish:
