@@ -23,7 +23,7 @@ parameters:
     # Should we make this a standard name???
     description: "The name of the branch to run updates with."
     type: string
-    default: "cms-updates/$(date +%F)"
+    default: "automated/cms-updates"
   site-hosting:
     description: "What hosting is the site using?"
     type: enum

@@ -10,6 +10,7 @@ parameters:
     type: string
     default: ${HOST_SITE_ENV}
   token:
+    description: "The Terminus token to use for authentication."
     type: string
     default: ${TERMINUS_TOKEN}
 steps:
@@ -24,4 +25,4 @@ steps:
       command: |
         terminus backup:create <<parameters.site-id>>.<<parameters.site-env>> --element=db
         terminus backup:get <<parameters.site-id>>.<<parameters.site-env>> --element="db" --to="/tmp/db.sql.gz"
-        zcat < /tmp/db.sql.gz | mysql -h ${DB_HOST} -u ${DB_USER} -p${DB_PASS} ${DB_NAME}
+        zcat < /tmp/db.sql.gz | pv --progress --size `gzip -l %s | sed -n 2p | awk '{print $2}'` --name '  Importing.. ' | mysql -h ${DB_HOST} -u ${DB_USER} -p${DB_PASS} ${DB_NAME}
