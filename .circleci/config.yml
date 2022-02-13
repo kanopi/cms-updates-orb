@@ -96,6 +96,16 @@ workflows:
           site-env: "live"
           update-method: "composer"
           context: kanopi-code
+          post-steps:
+            - run:
+                name: Check if PR exists
+                command: |
+                  # Currently just going to test if PR exists and if is currently Open
+                  gh pr list --head cms-updates/test --json 'state,updatedAt' | grep "OPEN"
+            - run:
+                name: Cleanup and Delete Remote Branch
+                command: |
+                  gh pr close cms-updates/test --delete-branch
 
 #      # If is a release publish version
 #      - orb-tools/publish:
