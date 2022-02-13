@@ -1,4 +1,6 @@
-executor: <<parameters.executor>>
+description: >
+  Run Content Management System (CMS) updates on Drupal and WordPress.
+executor: '<<parameters.executor>>'
 parameters:
   executor:
     description: "The executor to run this process for"
