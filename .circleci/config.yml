@@ -1,5 +1,16 @@
 version: 2.1
 
+validate-steps: &validate-steps
+  - run:
+      name: Check if PR exists
+      command: |
+        # Currently just going to test if PR exists and if is currently Open
+        gh pr list --head cms-updates/test --json 'number,state,updatedAt' | grep "OPEN"
+  - run:
+      name: Cleanup and Delete Remote Branch
+      command: |
+        gh pr close cms-updates/test --delete-branch
+
 orbs:
   cms-updates: kanopi/cms-updates@<<pipeline.parameters.dev-orb-version>>
   ci-tools: kanopi/ci-tools@1.10.0
@@ -90,16 +101,7 @@ workflows:
           site-env: "live"
           update-method: "composer"
           context: kanopi-code
-          post-steps:
-            - run:
-                name: Check if PR exists
-                command: |
-                  # Currently just going to test if PR exists and if is currently Open
-                  gh pr list --head cms-updates/test --json 'state,updatedAt' | grep "OPEN"
-            - run:
-                name: Cleanup and Delete Remote Branch
-                command: |
-                  gh pr close cms-updates/test --delete-branch
+          post-steps: *validate-steps
 
 #      # If is a release publish version
 #      - orb-tools/publish:
