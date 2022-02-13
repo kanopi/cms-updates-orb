@@ -13,12 +13,11 @@ validate-steps: &validate-steps
 
 # Run on Everything But Main Branch.
 dev-filters: &dev-filters
-  filters:
-    tags:
-      ignore: /.*/
-    branches:
-      ignore:
-        - main
+  tags:
+    ignore: /.*/
+  branches:
+    ignore:
+      - main
 
 orbs:
   cms-updates: kanopi/cms-updates@<<pipeline.parameters.dev-orb-version>>
