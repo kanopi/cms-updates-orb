@@ -4,6 +4,10 @@ parameters:
   hook:
     description: "The name of the hook being executed."
     type: string
+  override:
+    description: "Allow the following hook to completely override the steps."
+    type: boolean
+    default: false
   steps:
     description: "Steps executed"
     type: steps
@@ -11,6 +15,13 @@ parameters:
 steps:
   - run-hook:
       hook: 'pre-<<parameters.hook>>'
-  - steps: << parameters.steps >>
+  - when:
+      condition: <<parameters.override>>
+      steps:
+        - run-hook:
+            hook: '<<parameters.hook>>'
+  - unless:
+      condition: <<parameters.override>>
+      steps: <<parameters.steps>>
   - run-hook:
       hook: 'post-<<parameters.hook>>'
