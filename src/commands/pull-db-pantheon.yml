@@ -18,10 +18,8 @@ steps:
       command: mysql
   - ci-tools/install-terminus
   - run:
-      environment:
-        TERMINUS_TOKEN: <<parameters.token>>
       name: Authenticate to Terminus
-      command: terminus auth:login --machine-token="${TERMINUS_TOKEN}"
+      command: terminus auth:login --machine-token="<<parameters.token>>"
   - run:
       environment:
         SITE_ID: <<parameters.site-id>>

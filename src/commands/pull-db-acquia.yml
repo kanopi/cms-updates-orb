@@ -22,12 +22,9 @@ steps:
       command: mysql
   - ci-tools/install-acquia-cli
   - run:
-      environment:
-        ACQUIA_CLI_KEY: <<parameters.key>>
-        ACQUIA_CLI_SECRET: <<parameters.secret>>
       name: Authenticate to Acquia CLI
       command: |
-        acli auth:login --key="${ACQUIA_CLI_KEY}" --secret="${ACQUIA_CLI_SECRET}" --no-interaction
+        acli auth:login --key="<<parameters.key>>" --secret="<<parameters.secret>>" --no-interaction
   - run:
       environment:
         SITE_ID: <<parameters.site-id>>
