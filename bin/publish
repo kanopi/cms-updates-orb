@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+# Abort if anything fails.
+set -e
+
+if [[ "${CIRCLECI_CLI_TOKEN}" == "" ]]; then
+  echo "CIRCLECI_CLI_TOKEN not set"
+  exit 1
+fi
+
+TAG=${1:-'dev:alpha'}
+docker run -it --rm -e CIRCLECI_CLI_TOKEN -v "$PWD:/project" circleci/circleci-cli sh -c 'circleci orb pack /project/src > /project/orb.yml'
+docker run -it --rm -e CIRCLECI_CLI_TOKEN -v "$PWD:/project" circleci/circleci-cli circleci orb publish /project/orb.yml kanopi/cms-updates@${TAG}
+rm orb.yml || true
