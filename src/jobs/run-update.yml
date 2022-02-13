@@ -147,7 +147,7 @@ steps:
             path: <<parameters.docroot>>
   # Pull Database From Remote
   - run-step:
-      hook: 'db'
+      hook: 'pull-db'
       steps:
         - run:
             name: Install DB related tools
