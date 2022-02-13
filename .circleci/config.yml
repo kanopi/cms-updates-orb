@@ -142,12 +142,13 @@ workflows:
           site-id: "kanopi-2019"
           site-env: "live"
           update-method: "composer"
+          composer-version: '1'
           context: kanopi-code
           post-steps: *validate-steps
       - cms-updates/run-update:
           name: "diebenkorn"
           cms: "wordpress"
-          repo: "git@github.com:kanopi/kanopi-2019"
+          repo: "git@github.com:kanopi/diebenkorn"
           pr-branch: "main"
           update-branch: "cms-updates/test"
           site-hosting: "pantheon"
