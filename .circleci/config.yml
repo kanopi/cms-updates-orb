@@ -84,11 +84,11 @@ workflows:
     when: << pipeline.parameters.run-integration-tests >>
     jobs:
       - cms-updates/run-update:
-          name: "COIT"
+          name: "coit-8"
           executor: cms-updates/pantheon
           cms: "drupal"
           repo: "git@github.com:kanopi/coit-8"
-          pr-branch: "main"
+          pr-branch: "master"
           docroot: "web"
           update-branch: "cms-updates/test"
           site-hosting: "pantheon"
