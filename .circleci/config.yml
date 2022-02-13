@@ -83,7 +83,6 @@ workflows:
     jobs:
       - cms-updates/run-update:
           name: "coit-8"
-#          executor: cms-updates/pantheon
           cms: "drupal"
           repo: "git@github.com:kanopi/coit-8"
           pr-branch: "master"
