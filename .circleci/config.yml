@@ -117,7 +117,8 @@ workflows:
                 include_project_field: false
           filters: *tag-filters
           requires:
-            - orb-tools/publish-dev
+            - orb-tools/lint
+            - modify-default-value
 
   build_deploy:
     when: << pipeline.parameters.run-integration-tests >>
