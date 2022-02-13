@@ -2,7 +2,7 @@ parameters:
   cms:
     description: "Type of CMS to run updates on."
     type: enum
-    enum: [ "drupal", "drupal7", "drupal8", "drupal9", "wordpress" ]
+    enum: [ "drupal", "drupal7", "wordpress" ]
   docroot:
     description: "Where is the DOCROOT of the project?"
     type: string
@@ -10,10 +10,7 @@ parameters:
 steps:
   - when:
       condition:
-        or:
-          - equal: ["drupal", <<parameters.cms>>]
-          - equal: ["drupal8", <<parameters.cms>>]
-          - equal: ["drupal9", <<parameters.cms>>]
+        equal: ["drupal", <<parameters.cms>>]
       steps:
         - clear-cache-drush:
             cms: <<parameters.cms>>

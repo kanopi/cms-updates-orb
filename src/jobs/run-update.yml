@@ -2,14 +2,17 @@ description: >
   Run Content Management System (CMS) updates on Drupal and WordPress.
 executor:
   name: '<<parameters.site-hosting>>'
+  php-version: '<<parameters.php-version>>'
 parameters:
-#  executor:
-#    description: "The executor to run this process for"
-#    type: executor
+  php-version:
+    description: "Tag used for PHP version. Image: cimg/php"
+    type: enum
+    enum: ['7.4', '8.0', '8.1']
+    default: '7.4'
   cms:
     description: "Type of CMS to run updates on."
     type: enum
-    enum: ["drupal", "drupal7", "drupal8", "drupal9", "wordpress"]
+    enum: ["drupal", "drupal7", "wordpress"]
   repo:
     description: "The url to use for cloning the repo"
     type: string
@@ -23,7 +26,6 @@ parameters:
     type: string
     default: '.'
   update-branch:
-    # Should we make this a standard name???
     description: "The name of the branch to run updates with."
     type: string
     default: "automated/cms-updates"
@@ -31,6 +33,7 @@ parameters:
     description: "What hosting is the site using?"
     type: enum
     enum: ["general", "pantheon"]
+    default: "general"
   site-id:
     description: "The site name on the remote host to pull information from"
     type: string
@@ -42,7 +45,7 @@ parameters:
   db-type:
     description: "What is the method for pulling the database."
     type: enum
-    enum: ["acquia", "custom", "drush", "pantheon", "wpcli", "wpengine"]
+    enum: ["custom", "drush", "wpcli"]
     default: "custom"
   update-method:
     description: "The update-method used for running updates."
@@ -52,10 +55,6 @@ parameters:
     description: "Commit message used for changed items."
     type: string
     default: 'Automated Updated'
-  orb-version:
-    description: "Is this running from the orb?"
-    type: boolean
-    default: false
   git-name:
     description: "The name to use for commits"
     type: string
@@ -92,8 +91,6 @@ steps:
       condition:
         or:
           - equal: ["drupal7", <<parameters.cms>>]
-          - equal: ["drupal8", <<parameters.cms>>]
-          - equal: ["drupal9", <<parameters.cms>>]
           - equal: ["drupal", <<parameters.cms>>]
       steps:
         - ci-tools/install-drush
@@ -126,6 +123,9 @@ steps:
   - run-step:
       hook: 'start'
       steps:
+        - run:
+            name: Copy Scripts
+            command: sudo cp ${HOME}/config/config/bin/* /usr/local/bin/
         - when:
             condition:
               equal: ["pantheon", <<parameters.site-hosting>>]
@@ -139,7 +139,7 @@ steps:
               - run:
                   name: Link Config
                   command: |
-                    sudo ln -sf ${HOME}/config/config/pantheon/pantheon.ini /etc/php.d/pantheon.ini
+                    sudo ln -sf ${HOME}/config/config/hosting/pantheon/pantheon.ini /etc/php.d/pantheon.ini
         - run:
             name: Start PHP Server
             command: php -S 0.0.0.0:80
@@ -218,10 +218,7 @@ steps:
                   composer-version: <<parameters.composer-version>>
   - when:
       condition:
-        or:
-          - equal: ["drupal8", <<parameters.cms>>]
-          - equal: ["drupal9", <<parameters.cms>>]
-          - equal: ["drupal", <<parameters.cms>>]
+        equal: ["drupal", <<parameters.cms>>]
       steps:
         - run-step:
             hook: 'update'
@@ -252,12 +249,7 @@ steps:
             command: git status
         - run:
             name: Check Status
-            command: |
-              count=$(git status -s | wc -l  | tr -d '[:space:]')
-              if [[ $count -eq 0 ]]; then
-                echo "No updates found stopping build"
-                circleci-agent step halt
-              fi
+            command: check-status
         - run:
             name: Git Add
             command: git add .
@@ -278,17 +270,8 @@ steps:
       hook: 'create-pr'
       steps:
         - run:
+            environment:
+              UPDATE_BRANCH: <<parameters.update-branch>>
+              PR_BRANCH: <<parameters.pr-branch>>
             name: Create/Update PR In Github
-            command: |
-              set -x
-              ID=$(gh pr list --head <<parameters.update-branch>> --json 'number' --jq '.[].number')
-              echo "ID Found: ${ID}"
-              if [[ "${ID}" == "" ]]; then
-                gh pr create \
-                  --base <<parameters.pr-branch>> \
-                  --title "Automated Updates" \
-                  --body-file /tmp/output.md
-              else
-                gh pr edit ${ID} \
-                  --body-file /tmp/output.md
-              fi
+            command: create-pr

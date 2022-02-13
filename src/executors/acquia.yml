@@ -1,7 +1,8 @@
 parameters:
   php-version:
     description: "Tag used for PHP version. Image: cimg/php"
-    type: string
+    type: enum
+    enum: ['7.4', '8.0', '8.1']
     default: '7.4'
   db-version:
     description: "Tag used for MySQL version. Image: mariadb"
