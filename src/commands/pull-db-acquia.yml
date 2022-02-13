@@ -1,0 +1,33 @@
+description: >
+  Used for pulling database from Acquia
+parameters:
+  site-id:
+    description: "The site name on the remote host to pull information from"
+    type: string
+    default: ${HOST_SITE_ID}
+  site-env:
+    description: "The environment on the remote host to pull information from."
+    type: string
+    default: ${HOST_SITE_ENV}
+  key:
+    description: "The Acquia CLI key to use for authentication."
+    type: string
+    default: ${ACQUIA_KEY}
+  secret:
+    description: "The Acquia CLI secret to use for authentication."
+    type: string
+    default: ${ACQUIA_SECRET}
+steps:
+  - build-tools/ensure-command:
+      command: mysql
+  - ci-tools/install-acquia-cli
+  - run:
+      name: Authenticate to Acquia CLI
+      command: |
+        acli auth:login --key="<<parameters.key>>" --secret="<<parameters.secret>>" --no-interaction
+  - run:
+      environment:
+        SITE_ID: <<parameters.site-id>>
+        SITE_ENV: <<parameters.site-env>>
+      name: Create and Pull Database From Acquia
+      command: pull-db-acquia

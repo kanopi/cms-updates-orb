@@ -1,0 +1,25 @@
+parameters:
+  cms:
+    description: "Type of CMS to run updates on."
+    type: string
+  docroot:
+    description: "Where is the DOCROOT of the project?"
+    type: string
+    default: '.'
+steps:
+  - when:
+      condition:
+        equal: ["drupal7", <<parameters.cms>>]
+      steps:
+        - run:
+            name: Drush Clear Cache
+            command: drush cc all
+            path: <<parameters.docroot>>
+  - unless:
+      condition:
+        equal: ["drupal7", <<parameters.cms>>]
+      steps:
+        - run:
+            name: Drush Cache Rebuild
+            command: drush cr
+            path: <<parameters.docroot>>

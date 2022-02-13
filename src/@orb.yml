@@ -1,1 +1,12 @@
 version: 2.1
+
+description: >
+  CMS Updates Orb. Used for Drupal 7, Drupal 8, Drupal 9, and WordPress.
+
+display:
+  source_url: "https://www.github.com/kanopi/cms-updates"
+
+orbs:
+  ci-tools: kanopi/ci-tools@1.10.0
+  orb-tools: circleci/orb-tools@10.1.0
+  build-tools: circleci/build-tools@3.0.0

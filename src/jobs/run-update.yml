@@ -1,0 +1,277 @@
+description: >
+  Run Content Management System (CMS) updates on Drupal and WordPress.
+executor:
+  name: '<<parameters.site-hosting>>'
+  php-version: '<<parameters.php-version>>'
+parameters:
+  php-version:
+    description: "Tag used for PHP version. Image: cimg/php"
+    type: enum
+    enum: ['7.4', '8.0', '8.1']
+    default: '7.4'
+  cms:
+    description: "Type of CMS to run updates on."
+    type: enum
+    enum: ["drupal", "drupal7", "wordpress"]
+  repo:
+    description: "The url to use for cloning the repo"
+    type: string
+    default: "${CIRCLE_REPOSITORY_URL}"
+  pr-branch:
+    description: "What is the main branch of the project that should be used."
+    type: string
+    default: "${CIRCLE_BRANCH}"
+  docroot:
+    description: "Where is the DOCROOT of the project?"
+    type: string
+    default: '.'
+  update-branch:
+    description: "The name of the branch to run updates with."
+    type: string
+    default: "automated/cms-updates"
+  site-hosting:
+    description: "What hosting is the site using?"
+    type: enum
+    enum: ["general", "pantheon"]
+    default: "general"
+  site-id:
+    description: "The site name on the remote host to pull information from"
+    type: string
+    default: ""
+  site-env:
+    description: "The environment on the remote host to pull information from."
+    type: string
+    default: ""
+  db-type:
+    description: "What is the method for pulling the database."
+    type: enum
+    enum: ["custom", "drush", "wpcli"]
+    default: "custom"
+  update-method:
+    description: "The update-method used for running updates."
+    type: enum
+    enum: ["composer", "drush", "wpcli"]
+  update-message:
+    description: "Commit message used for changed items."
+    type: string
+    default: 'Automated Updated'
+  git-name:
+    description: "The name to use for commits"
+    type: string
+    default: "${GIT_NAME}"
+  git-email:
+    description: "The email to use for commits"
+    type: string
+    default: "${GIT_EMAIL}"
+  composer-version:
+    description: "Version of composer to use. Default 2.x"
+    type: enum
+    default: '2'
+    enum: ['1', '2']
+  cms-updates-config-repo:
+    description: 'The repo to pull down from the configuration.'
+    type: string
+    default: 'git@github.com:kanopi/cms-updates'
+  cms-updates-version:
+    default: 'main'
+    description: 'Version of CMS Update Script to download.'
+    type: string
+steps:
+  # Add SSH Key
+  - ci-tools/copy-ssh-key:
+      decode-params: '-di'
+  # Configure Git Client
+  - orb-tools/configure-git:
+      user-name: <<parameters.git-name>>
+      user-email: <<parameters.git-email>>
+  # Install Tools
+  - ci-tools/install-github-cli:
+      version: '2.4.0'
+  - when:
+      condition:
+        or:
+          - equal: ["drupal7", <<parameters.cms>>]
+          - equal: ["drupal", <<parameters.cms>>]
+      steps:
+        - ci-tools/install-drush
+  - when:
+      condition:
+        equal: ["wordpress", <<parameters.cms>>]
+      steps:
+        - ci-tools/install-wpcli
+  # Download Configuration Repo
+  - run:
+      name: Install Configuration
+      command: |
+        git clone <<parameters.cms-updates-config-repo>> $HOME/config
+        cd $HOME/config
+        git checkout <<parameters.cms-updates-version>>
+  # Checkout Project
+  - run-step:
+      hook: 'checkout'
+      steps:
+        - run:
+            name: Checkout Project
+            command: git clone <<parameters.repo>> .
+        - run:
+            name: Checkout Update Branch
+            command: git checkout -B <<parameters.update-branch>>
+        - run:
+            name: Checkout Branch to Main Branch
+            command: git reset --hard origin/<<parameters.pr-branch>>
+  # Start PHP Server
+  - run-step:
+      hook: 'start'
+      steps:
+        - run:
+            name: Copy Scripts
+            command: sudo cp ${HOME}/config/config/bin/* /usr/local/bin/
+        - when:
+            condition:
+              equal: ["pantheon", <<parameters.site-hosting>>]
+            steps:
+              - run:
+                  name: Install PHP Packages
+                  command: |
+                    sudo pecl update-channels
+                    sudo pecl install \
+                      redis
+              - run:
+                  name: Link Config
+                  command: |
+                    sudo ln -sf ${HOME}/config/config/hosting/pantheon/pantheon.ini /etc/php.d/pantheon.ini
+        - run:
+            name: Start PHP Server
+            command: php -S 0.0.0.0:80
+            background: true
+            path: <<parameters.docroot>>
+  # Pull Database From Remote
+  - run-step:
+      hook: 'pull-db'
+      steps:
+        - run:
+            name: Install DB related tools
+            command: |
+              sudo apt update
+              sudo apt install \
+                mysql-client \
+                pv
+        - when:
+            condition:
+              equal: ["pantheon", <<parameters.site-hosting>>]
+            steps:
+              - pull-db-pantheon:
+                  site-id: '<<parameters.site-id>>'
+                  site-env: '<<parameters.site-env>>'
+        - when:
+            condition:
+              equal: ["acquia", <<parameters.site-hosting>>]
+            steps:
+              - pull-db-acquia:
+                  site-id: '<<parameters.site-id>>'
+                  site-env: '<<parameters.site-env>>'
+        - when:
+            condition:
+              equal: ["wpengine", <<parameters.site-hosting>>]
+            steps:
+              - pull-db-wpengine:
+                  site-id: '<<parameters.site-id>>'
+                  site-env: '<<parameters.site-env>>'
+        - when:
+            condition:
+              equal: ["general", <<parameters.site-hosting>>]
+            steps:
+              # Replace
+              - when:
+                  condition:
+                    equal: ["drush", <<parameters.db-type>>]
+                  steps:
+                    - run:
+                        name: "Test"
+                        command: echo "CUSTOM DB PULL"
+              - when:
+                  condition:
+                    equal: ["drush", <<parameters.db-type>>]
+                  steps:
+                    - pull-db-drush:
+                        site-id: '<<parameters.site-id>>'
+                        site-env: '<<parameters.site-env>>'
+              - when:
+                  condition:
+                    equal: ["wpcli", <<parameters.db-type>>]
+                  steps:
+                    - pull-db-wpcli:
+                        site-id: '<<parameters.site-id>>'
+                        site-env: '<<parameters.site-env>>'
+  # Run Updates on CMS
+  - when:
+      condition:
+        equal: ["drupal7", <<parameters.cms>>]
+      steps:
+        - run-step:
+            hook: 'update'
+            steps:
+              - run-update:
+                  cms: 'drupal7'
+                  update-method: <<parameters.update-method>>
+                  docroot: <<parameters.docroot>>
+                  composer-version: <<parameters.composer-version>>
+  - when:
+      condition:
+        equal: ["drupal", <<parameters.cms>>]
+      steps:
+        - run-step:
+            hook: 'update'
+            steps:
+              - run-update:
+                  cms: 'drupal'
+                  update-method: <<parameters.update-method>>
+                  docroot: <<parameters.docroot>>
+                  composer-version: <<parameters.composer-version>>
+  - when:
+      condition:
+        equal: ["wordpress", <<parameters.cms>>]
+      steps:
+        - run-step:
+            hook: 'update'
+            steps:
+              - run-update:
+                  cms: 'wordpress'
+                  update-method: <<parameters.update-method>>
+                  docroot: <<parameters.docroot>>
+                  composer-version: <<parameters.composer-version>>
+  # Commit Changes
+  - run-step:
+      hook: 'commit'
+      steps:
+        - run:
+            name: Git Status
+            command: git status
+        - run:
+            name: Check Status
+            command: check-status
+        - run:
+            name: Git Add
+            command: git add .
+        - run:
+            name: Git Commit
+            command: git commit -m "<<parameters.update-message>>"
+  # Push Changes to Remote Hosting
+  - run-step:
+      hook: 'push'
+      steps:
+        - run:
+            name: Push to Github
+            command: git push -f origin <<parameters.update-branch>>
+            # @Todo: Create Task in Teamwork
+            # @Todo: Create Entry in Harvest
+  # Create Pull Request In Remote
+  - run-step:
+      hook: 'create-pr'
+      steps:
+        - run:
+            environment:
+              UPDATE_BRANCH: <<parameters.update-branch>>
+              PR_BRANCH: <<parameters.pr-branch>>
+            name: Create/Update PR In Github
+            command: create-pr

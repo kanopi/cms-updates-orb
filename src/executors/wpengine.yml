@@ -1,0 +1,33 @@
+parameters:
+  php-version:
+    description: "Tag used for PHP version. Image: cimg/php"
+    type: enum
+    enum: ['7.4', '8.0', '8.1']
+    default: '7.4'
+  db-version:
+    description: "Tag used for MySQL version. Image: mariadb"
+    type: string
+    default: '5.7'
+docker:
+  - image: cimg/php:<<parameters.php-version>>
+    auth:
+      username: $DOCKERHUB_USER
+      password: $DOCKERHUB_PASS
+    environment:
+      HOSTING: wpengine
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: default
+      DB_USER: user
+      DB_PASS: user
+      TZ: America/Los_Angeles
+  - image: mysql:<<parameters.db-version>>
+    name: db
+    auth:
+      username: $DOCKERHUB_USER
+      password: $DOCKERHUB_PASS
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: default
+      MYSQL_USER: user
+      MYSQL_PASSWORD: user

@@ -1,0 +1,17 @@
+description: >
+  Hook command to run at a particular point in the process
+parameters:
+  hook:
+    description: "The name of the hook being executed."
+    type: string
+  directory:
+    description: "Directory where hooks can be stored"
+    type: string
+    default: ".updates"
+steps:
+  - run:
+      name: Running Hook <<parameters.hook>>
+      command: |
+        if [[ -f <<parameters.directory>>/<<parameters.hook>> ]]; then
+          ./<<parameters.directory>>/<<parameters.hook>>
+        fi

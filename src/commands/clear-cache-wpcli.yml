@@ -1,0 +1,14 @@
+parameters:
+  docroot:
+    description: "Where is the DOCROOT of the project?"
+    type: string
+    default: '.'
+steps:
+  - run:
+      name: WPCLI Clear Cache
+      command: wp cache flush
+      path: <<parameters.docroot>>
+  - run:
+      name: WPCLI Transient Delete
+      command: wp transient delete --all
+      path: <<parameters.docroot>>

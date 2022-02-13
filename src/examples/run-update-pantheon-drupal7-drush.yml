@@ -1,0 +1,23 @@
+description: >
+  Run Drupal 7 Updates on Pantheon with Drush.
+usage:
+  version: 2.1
+  orbs:
+    cms-updates: kanopi/cms-updates@x.y.z
+  workflows:
+    nightly_updates:
+      triggers:
+        - schedule:
+            cron: "0 0 * * *"
+            filters:
+              branches:
+                only:
+                  - main
+      jobs:
+        - cms-updates/run-update:
+            executor: cms-updates/pantheon
+            cms: "drupal7"
+            site-hosting: "pantheon"
+            site-id: "site-machine-name"
+            site-env: "live"
+            update-method: "drush"

@@ -1,0 +1,125 @@
+parameters:
+  cms:
+    description: "Type of CMS to run updates on."
+    type: enum
+    enum: [ "drupal", "drupal7", "wordpress" ]
+  update-method:
+    description: "The update-method used for running updates."
+    type: enum
+    enum: [ "composer", "drush", "wpcli" ]
+  docroot:
+    description: "Where is the DOCROOT of the project?"
+    type: string
+    default: '.'
+  composer-version:
+    description: "Version of composer to use. Default 2.x"
+    type: enum
+    default: '2'
+    enum: [ '1', '2' ]
+steps:
+  - when:
+      condition:
+        equal: ["drush", <<parameters.update-method>>]
+      steps:
+        - clear-cache-drush:
+            cms: <<parameters.cms>>
+            docroot: <<parameters.docroot>>
+        - run:
+            name: Export Package List Before Update
+            command: drush pm-list --format=json --status=enabled > /tmp/before_update.json
+            path: <<parameters.docroot>>
+        - run:
+            name: Run Drush Update
+            command: drush up -y
+            path: <<parameters.docroot>>
+        - run:
+            name: Export Package List After Update
+            command: drush pm-list --format=json --status=enabled > /tmp/after_update.json
+            path: <<parameters.docroot>>
+        - run:
+            name: Run Diff Report
+            command: project-versions diff drush /tmp/output.md /tmp/before_update.json /tmp/after_update.json
+        - clear-cache-drush:
+            cms: <<parameters.cms>>
+            docroot: <<parameters.docroot>>
+  - when:
+      condition:
+        equal: ["composer", <<parameters.update-method>>]
+      steps:
+        - run:
+            name: Install Tools
+            command: sudo apt install rsync -y
+        - run:
+            name: Install Composer Version
+            command: sudo composer self-update --<<parameters.composer-version>>
+        - run:
+            name: Composer Install
+            command: composer install --ansi --no-interaction
+        - clear-cache:
+            cms: <<parameters.cms>>
+            docroot: <<parameters.docroot>>
+        - run:
+            name: Export Package List Before Update
+            command: composer show --no-interaction -i -f json > /tmp/before_update.json
+        - run:
+            name: Composer Clear Cache
+            command: composer clearcache --no-interaction
+        - when:
+            condition:
+              equal: ["2", <<parameters.composer-version>>]
+            steps:
+              - run:
+                  name: Run Composer Update
+                  command: composer update -W --no-interaction --optimize-autoloader
+        - unless:
+            condition:
+              equal: ["2", <<parameters.composer-version>>]
+            steps:
+              - run:
+                  name: Run Composer Update
+                  command: composer update --no-interaction --optimize-autoloader
+        - run:
+            name: Export Package List After Update
+            command: composer show --no-interaction -i -f json > /tmp/after_update.json
+        - run:
+            name: Run Diff Report
+            command: project-versions diff composer /tmp/output.md /tmp/before_update.json /tmp/after_update.json
+        - when:
+            condition:
+              or:
+                - equal: ["drupal", <<parameters.cms>>]
+                - equal: ["drupal8", <<parameters.cms>>]
+                - equal: ["drupal9", <<parameters.cms>>]
+            steps:
+              - run:
+                  name: Drush Export
+                  command: drush cex -y
+                  path: <<parameters.docroot>>
+        - clear-cache:
+            cms: <<parameters.cms>>
+  - when:
+      condition:
+        equal: ["wpcli", <<parameters.update-method>>]
+      steps:
+        - clear-cache-wpcli:
+            docroot: <<parameters.docroot>>
+        - run:
+            name: Export Package List Before Update
+            command: wp plugin list --status=active --format=json > /tmp/before_update.json
+            path: <<parameters.docroot>>
+        ## Need to pipe true because not all plugins can be updated with WPCLI
+        - run:
+            name: Run WPCLI Update on All Plugins
+            command: wp plugin update --all || true
+            path: <<parameters.docroot>>
+        - run:
+            name: Export Package List Before Update
+            command: wp plugin list --status=active --format=json > /tmp/after_update.json
+            path: <<parameters.docroot>>
+        - run:
+            name: Run Diff Report
+            command: project-versions diff wpcli /tmp/output.md /tmp/before_update.json /tmp/after_update.json
+        - clear-cache-wpcli:
+            docroot: <<parameters.docroot>>
+  - store_artifacts:
+      path: /tmp

@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+set -x
+
+ID=$(gh pr list --head ${UPDATE_BRANCH} --json 'number' --jq '.[].number')
+
+echo "ID Found: ${ID}"
+
+if [[ "${ID}" == "" ]]; then
+  gh pr create \
+    --base ${PR_BRANCH} \
+    --title "Automated Updates" \
+    --body-file /tmp/output.md
+else
+  gh pr edit ${ID} \
+    --body-file /tmp/output.md
+fi

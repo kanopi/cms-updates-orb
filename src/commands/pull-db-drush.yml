@@ -1,0 +1,15 @@
+description: >
+  Use Drush to Pull Database
+parameters:
+  site-id:
+    description: "The site name on the remote host to pull information from"
+    type: string
+    default: ${HOST_SITE_ID}
+  site-env:
+    description: "The environment on the remote host to pull information from."
+    type: string
+    default: ${HOST_SITE_ENV}
+steps:
+  - run:
+      name: Test
+      command: echo "Hello"
