@@ -156,6 +156,18 @@ workflows:
           update-method: "wpcli"
           context: kanopi-code
           post-steps: *validate-steps
+#      - cms-updates/run-update:
+#          name: "brown-toland-provider"
+#          cms: "drupal"
+#          repo: "git@github.com:kanopi/brown-toland-provider"
+#          pr-branch: "main"
+#          update-branch: "cms-updates/test"
+#          site-hosting: "acquia"
+#          site-id: "btpportal"
+#          site-env: "prod"
+#          update-method: "composer"
+#          context: kanopi-code
+#          post-steps: *validate-steps
 
 #      # If is a release publish version
 #      - orb-tools/publish:
