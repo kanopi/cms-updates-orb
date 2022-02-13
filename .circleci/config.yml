@@ -105,6 +105,20 @@ workflows:
           requires:
             - orb-tools/publish-dev
 
+      # If is a release publish version
+      - orb-tools/publish:
+          orb-ref: kanopi/cms-updates@${CIRCLE_TAG}
+          post-steps:
+            - slack/notify:
+                title: "New Version of CMS Updates!!!!"
+                message: "Kanopi CMS Update Orb has published new version: kanopi/cms-updates@${CIRCLE_TAG}"
+                include_visit_job_action: false
+                include_job_number_field: false
+                include_project_field: false
+          filters: *tag-filters
+          requires:
+            - orb-tools/publish-dev
+
   build_deploy:
     when: << pipeline.parameters.run-integration-tests >>
     jobs:
@@ -204,15 +218,3 @@ workflows:
 #          context: kanopi-code
 #          post-steps: *validate-steps
 #          filters: *dev-filters
-
-#      # If is a release publish version
-      - orb-tools/publish:
-          orb-ref: kanopi/cms-updates@${CIRCLE_TAG}
-          post-steps:
-            - slack/notify:
-                title: "New Version of CMS Updates!!!!"
-                message: "Kanopi CMS Update Orb has published new version: kanopi/cms-updates@${CIRCLE_TAG}"
-                include_visit_job_action: false
-                include_job_number_field: false
-                include_project_field: false
-          filters: *tag-filters
