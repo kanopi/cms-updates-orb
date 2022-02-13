@@ -9,7 +9,7 @@ parameters:
   cms:
     description: "Type of CMS to run updates on."
     type: enum
-    enum: [ "drupal", "drupal7", "drupal8", "drupal9", "wordpress" ]
+    enum: ["drupal", "drupal7", "drupal8", "drupal9", "wordpress"]
   repo:
     description: "The url to use for cloning the repo"
     type: string
@@ -30,7 +30,7 @@ parameters:
   site-hosting:
     description: "What hosting is the site using?"
     type: enum
-    enum: [ "general", "pantheon" ]
+    enum: ["general", "pantheon"]
   site-id:
     description: "The site name on the remote host to pull information from"
     type: string
@@ -42,12 +42,12 @@ parameters:
   db-type:
     description: "What is the method for pulling the database."
     type: enum
-    enum: [ "acquia", "custom", "drush", "pantheon", "wpcli", "wpengine" ]
+    enum: ["acquia", "custom", "drush", "pantheon", "wpcli", "wpengine"]
     default: "custom"
   update-method:
     description: "The update-method used for running updates."
     type: enum
-    enum: [ "composer", "drush", "wpcli" ]
+    enum: ["composer", "drush", "wpcli"]
   update-message:
     description: "Commit message used for changed items."
     type: string
@@ -68,25 +68,23 @@ parameters:
     description: "Version of composer to use. Default 2.x"
     type: enum
     default: '2'
-    enum: [ '1', '2' ]
+    enum: ['1', '2']
   cms-updates-config-repo:
-    description: "The repo to pull down from the configuration."
+    description: 'The repo to pull down from the configuration.'
     type: string
-    default: "git@github.com:kanopi/cms-updates"
+    default: 'git@github.com:kanopi/cms-updates'
   cms-updates-version:
-    description: "Version of CMS Updates Script Download"
-    type: string
     default: 'main'
+    description: 'Version of CMS Update Script to download.'
+    type: string
 steps:
   # Add SSH Key
   - ci-tools/copy-ssh-key:
       decode-params: '-di'
-
   # Configure Git Client
   - orb-tools/configure-git:
       user-name: <<parameters.git-name>>
       user-email: <<parameters.git-email>>
-
   # Install Tools
   - ci-tools/install-github-cli:
       version: '2.4.0'
@@ -104,7 +102,6 @@ steps:
         equal: ["wordpress", <<parameters.cms>>]
       steps:
         - ci-tools/install-wpcli
-
   # Download Configuration Repo
   - run:
       name: Install Configuration
@@ -112,7 +109,6 @@ steps:
         git clone <<parameters.cms-updates-config-repo>> $HOME/config
         cd $HOME/config
         git checkout <<parameters.cms-updates-version>>
-
   # Checkout Project
   - run-step:
       hook: 'checkout'
@@ -126,7 +122,6 @@ steps:
         - run:
             name: Checkout Branch to Main Branch
             command: git reset --hard origin/<<parameters.pr-branch>>
-
   # Start PHP Server
   - run-step:
       hook: 'start'
@@ -150,7 +145,6 @@ steps:
             command: php -S 0.0.0.0:80
             background: true
             path: <<parameters.docroot>>
-
   # Pull Database From Remote
   - run-step:
       hook: 'db'
@@ -209,7 +203,6 @@ steps:
                     - pull-db-wpcli:
                         site-id: '<<parameters.site-id>>'
                         site-env: '<<parameters.site-env>>'
-
   # Run Updates on CMS
   - when:
       condition:
@@ -250,7 +243,6 @@ steps:
                   update-method: <<parameters.update-method>>
                   docroot: <<parameters.docroot>>
                   composer-version: <<parameters.composer-version>>
-
   # Commit Changes
   - run-step:
       hook: 'commit'
@@ -272,9 +264,6 @@ steps:
         - run:
             name: Git Commit
             command: git commit -m "<<parameters.update-message>>"
-  # @Todo: Create Task in Teamwork
-  # @Todo: Create Entry in Harvest
-
   # Push Changes to Remote Hosting
   - run-step:
       hook: 'push'
@@ -282,7 +271,8 @@ steps:
         - run:
             name: Push to Github
             command: git push -f origin <<parameters.update-branch>>
-
+            # @Todo: Create Task in Teamwork
+            # @Todo: Create Entry in Harvest
   # Create Pull Request In Remote
   - run-step:
       hook: 'create-pr'
