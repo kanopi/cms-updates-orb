@@ -116,6 +116,7 @@ workflows:
       # If is a release publish version
       - orb-tools/publish:
           orb-ref: kanopi/cms-updates@${CIRCLE_TAG}
+          attach-workspace: true
           post-steps:
             - slack/notify:
                 title: "New Version of CMS Updates!!!!"
