@@ -25,16 +25,17 @@ jobs:
   modify-default-value:
     executor: ci-tools/alpine
     steps:
-      - checkout
+      - attach_workspace:
+          at: workspace
       - ci-tools/install-yq
       - run:
           name: Modify Default Value
           command: |
-            VERSION=${CIRCLE_SHA1:0:7} yq eval -i '.parameters.cms-updates-version.default = env(VERSION)' src/jobs/run-update.yml
+            VERSION="\"${CIRCLE_SHA1:0:7}\"" yq eval -i '.jobs.run-update.parameters.cms-updates-version.default = env(VERSION)' orb.yml
       - persist_to_workspace:
           root: .
           paths:
-            - src
+            - orb.yml
 
 ###########
 ### Workflows
@@ -43,30 +44,21 @@ workflows:
   build_test:
     unless: << pipeline.parameters.run-integration-tests >>
     jobs:
+      # Lint yml files to make sure formatted
+      - orb-tools/lint
+
+      # Pack Everything in src directory to orb.yml
+      - orb-tools/pack
 
       # Modify the Value of the Current Version
       - modify-default-value
-
-      # Lint yml files to make sure formatted
-      - orb-tools/lint:
-          checkout: false
-          attach-workspace: true
-          requires:
-            - modify-default-value
-
-      # Pack Everything in src directory to orb.yml
-      - orb-tools/pack:
-          checkout: false
-          attach-workspace: true
-          requires:
-            - modify-default-value
 
       # If is a branch publish dev version
       - orb-tools/publish-dev:
           orb-name: kanopi/cms-updates
           requires:
             - orb-tools/lint
-            - orb-tools/pack
+            - modify-default-value
 
       - orb-tools/trigger-integration-tests-workflow:
           name: trigger-integration-dev
