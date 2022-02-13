@@ -19,6 +19,13 @@ dev-filters: &dev-filters
     ignore:
       - main
 
+# Run on everything but tags
+non-tag-filters: &non-tag-filters
+  tags:
+    ignore: /.*/
+  branches:
+    only: /.*/
+
 # Only Run On Tags
 tag-filters: &tag-filters
   tags:
@@ -26,6 +33,7 @@ tag-filters: &tag-filters
   branches:
     ignore: /.*/
 
+# Run All the time
 run-everytime: &run-everytime
   tags:
     only: /.*/
@@ -100,7 +108,7 @@ workflows:
             - modify-default-value
 
       - orb-tools/trigger-integration-tests-workflow:
-          filters: *run-everytime
+          filters: *non-tag-filters
           name: trigger-integration-dev
           requires:
             - orb-tools/publish-dev
