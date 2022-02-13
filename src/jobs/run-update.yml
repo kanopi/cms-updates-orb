@@ -156,7 +156,9 @@ steps:
             name: Install DB related tools
             command: |
               sudo apt update
-              sudo apt install mysql-client
+              sudo apt install \
+                mysql-client \
+                pv
         - when:
             condition:
               equal: ["pantheon", <<parameters.site-hosting>>]
