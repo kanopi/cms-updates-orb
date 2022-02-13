@@ -19,6 +19,20 @@ dev-filters: &dev-filters
     ignore:
       - main
 
+# Only Run On Tags
+tag-filters: &tag-filters
+  tags:
+    only: /.*/
+  branches:
+    ignore: /.*/
+
+run-everytime: &run-everytime
+  tags:
+    only: /.*/
+  branches:
+    only: /.*/
+
+
 orbs:
   cms-updates: kanopi/cms-updates@<<pipeline.parameters.dev-orb-version>>
   ci-tools: kanopi/ci-tools@1.10.0
@@ -64,24 +78,29 @@ workflows:
     unless: << pipeline.parameters.run-integration-tests >>
     jobs:
       # Lint yml files to make sure formatted
-      - orb-tools/lint
+      - orb-tools/lint:
+          filters: *run-everytime
 
       # Pack Everything in src directory to orb.yml
-      - orb-tools/pack
+      - orb-tools/pack:
+          filters: *run-everytime
 
       # Modify the Value of the Current Version
       - modify-default-value:
+          filters: *run-everytime
           requires:
             - orb-tools/pack
 
       # If is a branch publish dev version
       - orb-tools/publish-dev:
           orb-name: kanopi/cms-updates
+          filters: *run-everytime
           requires:
             - orb-tools/lint
             - modify-default-value
 
       - orb-tools/trigger-integration-tests-workflow:
+          filters: *run-everytime
           name: trigger-integration-dev
           requires:
             - orb-tools/publish-dev
@@ -196,8 +215,4 @@ workflows:
                 include_visit_job_action: false
                 include_job_number_field: false
                 include_project_field: false
-          filters:
-            tags:
-              only: /.*/
-            branches:
-              ignore: /.*/
+          filters: *tag-filters
