@@ -51,7 +51,9 @@ workflows:
       - orb-tools/pack
 
       # Modify the Value of the Current Version
-      - modify-default-value
+      - modify-default-value:
+          requires:
+            - orb-tools/pack
 
       # If is a branch publish dev version
       - orb-tools/publish-dev:
