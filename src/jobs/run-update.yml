@@ -1,10 +1,10 @@
 description: >
   Run Content Management System (CMS) updates on Drupal and WordPress.
-executor: '<<parameters.executor>>'
+executor: '<<parameters.site-hosting>>'
 parameters:
-  executor:
-    description: "The executor to run this process for"
-    type: executor
+#  executor:
+#    description: "The executor to run this process for"
+#    type: executor
   cms:
     description: "Type of CMS to run updates on."
     type: enum
