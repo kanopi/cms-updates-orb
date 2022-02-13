@@ -116,7 +116,7 @@ steps:
       steps:
         - run:
             name: Checkout Project
-            command: git clone <<parameters.repo>> ${CIRCLE_WORKING_DIRECTORY}
+            command: git clone <<parameters.repo>> .
         - run:
             name: Checkout Update Branch
             command: git checkout -B <<parameters.update-branch>>
