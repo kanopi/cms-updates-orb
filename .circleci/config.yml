@@ -26,7 +26,7 @@ jobs:
     executor: ci-tools/alpine
     steps:
       - attach_workspace:
-          at: workspace
+          at: .
       - ci-tools/install-yq
       - run:
           name: Modify Default Value
