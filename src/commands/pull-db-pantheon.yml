@@ -12,21 +12,20 @@ parameters:
   token:
     type: string
     default: ${TERMINUS_TOKEN}
+environment:
+  TOKEN: <<parameters.token>>
+  SITE_ID: <<parameters.site-id>>
+  SITE_ENV: <<parameters.site-env>>
 steps:
   - build-tools/ensure-command:
       command: mysql
   - ci-tools/install-terminus
   - run:
       name: Authenticate to Terminus
-      environment:
-        TOKEN: <<parameters.token>>
       command: |
         terminus auth:login --machine-token=${TOKEN}
   - run:
       name: Create and Pull Database From Pantheon
-      env:
-        SITE_ID: <<parameters.site-id>>
-        SITE_ENV: <<parameters.site-env>>
       command: |
         terminus backup:create ${SITE_ID}.${SITE_ENV} --element=db
         terminus backup:get ${SITE_ID}.${SITE_ENV} --element="db" --to="/tmp/db.sql.gz"
