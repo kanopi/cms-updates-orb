@@ -173,7 +173,7 @@ steps:
                     wp config create \
                       --dbname="${DB_NAME}" \
                       --dbuser="${DB_USER}" \
-                      --dbpass="${DB_PASSWORD}" \
+                      --dbpass="${DB_PASS}" \
                       --dbhost="${DB_HOST}" \
                       --dbprefix="${TABLE_PREFIX}"
               - when:
