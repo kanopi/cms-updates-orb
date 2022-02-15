@@ -214,6 +214,34 @@ workflows:
           context: kanopi-code
           post-steps: *validate-steps
           filters: *dev-filters
+      - cms-updates/run-update:
+          name: "veritext"
+          cms: "wordpress"
+          repo: "git@github.com:kanopi/veritext"
+          pr-branch: "main"
+          update-branch: "cms-updates/test"
+          site-hosting: "wpengine"
+          site-id: "veritext"
+          update-method: "wpcli"
+          context:
+            - kanopi-code
+            - kanopi-code-wpengine
+          post-steps: *validate-steps
+          filters: *dev-filters
+      - cms-updates/run-update:
+          name: "iocdf"
+          cms: "wordpress"
+          repo: "git@github.com:kanopi/iocdf"
+          pr-branch: "master"
+          update-branch: "cms-updates/test"
+          site-hosting: "wpengine"
+          site-id: "interna2785"
+          update-method: "wpcli"
+          is-multisite: true
+          multisite-subdomain: true
+          context: kanopi-code
+          post-steps: *validate-steps
+          filters: *dev-filters
 
 #      - cms-updates/run-update:
 #          name: "brown-toland-provider"

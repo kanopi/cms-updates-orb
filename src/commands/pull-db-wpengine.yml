@@ -5,11 +5,13 @@ parameters:
     description: "The site name on the remote host to pull information from"
     type: string
     default: ${HOST_SITE_ID}
-  site-env:
-    description: "The environment on the remote host to pull information from."
-    type: string
-    default: ${HOST_SITE_ENV}
 steps:
+  - build-tools/ensure-command:
+      command: mysql
+  - build-tools/ensure-command:
+      command: rsync
   - run:
-      name: Test
-      command: echo "Hello"
+      environment:
+        SITE_ID: <<parameters.site-id>>
+      name: Create and Pull Database From Acquia
+      command: pull-db-acquia
