@@ -9,12 +9,10 @@ steps:
   - build-tools/ensure-command:
       command: wp
   - run:
-      environment:
-        VERSION: <<parameters.version>>
       name: Install WordPress Core
       command:
-        if [[ "${VERSION}" != "" ]]; then
-          VERSION_FLAG="--version='${VERSION}'"
+        if [[ "<<parameters.version>>" != "" ]]; then
+          VERSION_FLAG='--version="<<parameters.version>>"'
         fi
 
         wp core download ${VERSION_FLAG}
