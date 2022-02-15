@@ -136,6 +136,13 @@ steps:
       hook: 'start'
       steps:
         - run:
+            name: Install DB related tools
+            command: |
+              sudo apt update
+              sudo apt install \
+                mysql-client \
+                pv
+        - run:
             name: Copy Scripts
             command: |
               chmod +x ${HOME}/config/config/bin/*
@@ -185,13 +192,6 @@ steps:
   - run-step:
       hook: 'pull-db'
       steps:
-        - run:
-            name: Install DB related tools
-            command: |
-              sudo apt update
-              sudo apt install \
-                mysql-client \
-                pv
         - when:
             condition:
               equal: ["pantheon", <<parameters.site-hosting>>]
