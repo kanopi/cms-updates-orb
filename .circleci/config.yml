@@ -238,7 +238,7 @@ workflows:
           site-id: "interna2785"
           update-method: "wpcli"
           is-multisite: true
-          multisite-subdomain: true
+          multisite-subdomains: true
           context: kanopi-code
           post-steps: *validate-steps
           filters: *dev-filters
