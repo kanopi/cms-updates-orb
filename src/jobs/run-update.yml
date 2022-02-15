@@ -137,7 +137,9 @@ steps:
       steps:
         - run:
             name: Copy Scripts
-            command: sudo cp ${HOME}/config/config/bin/* /usr/local/bin/
+            command: |
+              chmod +x ${HOME}/config/config/bin/*
+              sudo cp ${HOME}/config/config/bin/* /usr/local/bin/
         - when:
             condition:
               equal: ["pantheon", <<parameters.site-hosting>>]
