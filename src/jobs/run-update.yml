@@ -216,14 +216,6 @@ steps:
             condition:
               equal: ["general", <<parameters.site-hosting>>]
             steps:
-              # Replace
-              - when:
-                  condition:
-                    equal: ["drush", <<parameters.db-type>>]
-                  steps:
-                    - run:
-                        name: "Test"
-                        command: echo "CUSTOM DB PULL"
               - when:
                   condition:
                     equal: ["drush", <<parameters.db-type>>]
