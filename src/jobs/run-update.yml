@@ -165,6 +165,8 @@ steps:
             condition:
               equal: ["wpengine", <<parameters.site-hosting>>]
             steps:
+              # Should I run a check on this to see if necessary?
+              - install-wp-core
               - run:
                   environment:
                     TABLE_PREFIX: <<parameters.table-prefix>>

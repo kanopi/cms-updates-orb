@@ -1,0 +1,20 @@
+description: >
+  Install WordPress Core
+parameters:
+  version:
+    description: "What version of WordPress Core to install."
+    type: string
+    default: ''
+steps:
+  - build-tools/ensure-command:
+      command: wpcli
+  - run:
+      environment:
+        VERSION: <<parameters.version>>
+      name: Install WordPress Core
+      command:
+        if [[ "${VERSION}" != "" ]]; then
+          VERSION_FLAG="--version='${VERSION}'"
+        fi
+
+        wp core download ${VERSION_FLAG}
