@@ -15,7 +15,6 @@ usage:
                   - main
       jobs:
         - cms-updates/run-update:
-            executor: cms-updates/pantheon
             cms: "wordpress"
             site-hosting: "pantheon"
             site-id: "site-machine-name"
