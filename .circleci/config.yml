@@ -223,9 +223,7 @@ workflows:
           site-hosting: "wpengine"
           site-id: "veritext"
           update-method: "wpcli"
-          context:
-            - kanopi-code
-            - kanopi-code-wpengine
+          context: kanopi-code
           post-steps: *validate-steps
           filters: *dev-filters
       - cms-updates/run-update:
