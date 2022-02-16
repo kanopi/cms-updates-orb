@@ -10,7 +10,7 @@ steps:
       command: wp
   - run:
       name: Install WordPress Core
-      command:
+      command: |
         if [[ "<<parameters.version>>" != "" ]]; then
           VERSION_FLAG='--version="<<parameters.version>>"'
         fi
