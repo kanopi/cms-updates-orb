@@ -6,10 +6,10 @@ validate-steps: &validate-steps
       command: |
         # Currently just going to test if PR exists and if is currently Open
         gh pr list --head cms-updates/test --json 'number,state,updatedAt' | grep "OPEN"
-  - run:
-      name: Cleanup and Delete Remote Branch
-      command: |
-        gh pr close cms-updates/test --delete-branch
+#  - run:
+#      name: Cleanup and Delete Remote Branch
+#      command: |
+#        gh pr close cms-updates/test --delete-branch
 
 # Run on Everything But Main Branch.
 dev-filters: &dev-filters
