@@ -19,8 +19,8 @@ parameters:
 docker:
   - image: cimg/php:<<parameters.php-version>>
     auth:
-      username: $DOCKERHUB_USER
-      password: $DOCKERHUB_PASS
+      username: ${DOCKERHUB_USER}
+      password: ${DOCKERHUB_PASS}
     environment:
       HOSTING: pantheon
       DB_HOST: db
@@ -36,13 +36,13 @@ docker:
   - image: circleci/redis:<<parameters.cache-version>>
     name: redis
     auth:
-      username: $DOCKERHUB_USER
-      password: $DOCKERHUB_PASS
+      username: ${DOCKERHUB_USER}
+      password: ${DOCKERHUB_PASS}
   - image: mariadb:<<parameters.db-version>>
     name: db
     auth:
-      username: $DOCKERHUB_USER
-      password: $DOCKERHUB_PASS
+      username: ${DOCKERHUB_USER}
+      password: ${DOCKERHUB_PASS}
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: default
@@ -51,5 +51,5 @@ docker:
   - image: solr:<<parameters.search-version>>
     name: solr
     auth:
-      username: $DOCKERHUB_USER
-      password: $DOCKERHUB_PASS
+      username: ${DOCKERHUB_USER}
+      password: ${DOCKERHUB_PASS}
