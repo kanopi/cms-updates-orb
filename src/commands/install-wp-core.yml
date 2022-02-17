@@ -11,8 +11,10 @@ steps:
   - run:
       name: Install WordPress Core
       command: |
-        if [[ "<<parameters.version>>" != "" ]]; then
-          VERSION_FLAG='--version="<<parameters.version>>"'
-        fi
+        if [[ ! -f "index.php" ]] && [[ ! -f "wp-admin.php" ]]; then
+          if [[ "<<parameters.version>>" != "" ]]; then
+            VERSION_FLAG='--version="<<parameters.version>>"'
+          fi
 
-        wp core download ${VERSION_FLAG}
+          wp core download ${VERSION_FLAG}
+        fi
