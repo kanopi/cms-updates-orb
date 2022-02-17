@@ -1,0 +1,22 @@
+description: >
+  Run WordPress Updates on Pantheon with WPCLI.
+usage:
+  version: 2.1
+  orbs:
+    cms-updates: kanopi/cms-updates@x.y.z
+  workflows:
+    nightly_updates:
+      triggers:
+        - schedule:
+            cron: "0 0 * * *"
+            filters:
+              branches:
+                only:
+                  - main
+      jobs:
+        - cms-updates/run-update:
+            cms: "wordpress"
+            site-hosting: "wpengine"
+            site-id: "site-id"
+            update-method: "wpcli"
+            is-multisite: true

@@ -46,10 +46,13 @@ repo | string | | `${CIRCLE_REPOSITORY_URL}` | | The url of the repository to cl
 pr-branch | string | | `${CIRCLE_BRANCH}` | | What branch should we be creating a Pull Request For.
 docroot | string | | `.` | | The location where the projects document root is. Examples are web, docroot, http.
 update-branch | string | | `automated/cms-updates` | | The name of the branch to run updates in.
-site-hosting | enum | | `general` | general, pantheon | The name of the hosting set up to use. This will provide the stacks for the project.
+site-hosting | enum | | `general` | general, pantheon, wpengine | The name of the hosting set up to use. This will provide the stacks for the project.
 site-id | string | | | | The site name/id on the hosting provider to pull the database from.
 site-env | string | | | | The environment on the hosting provider to pull the database from.
+is-multisite | boolean | | false | | | Is this site a multi-site. Primarily used for regenerating the wp-config.php
+multisite-subdomains | boolean | | false | | | Is this site a subdomain multi-site. Primarily used for regenerating the wp-config.php
 db-type | enum | | `custom` | custom, drush, wpcli | The process used for pulling a database from the remote hosting provider. **NOTE** This is only used _IF_ the site-hosting is *NOT* one of the following acquia, pantheon, wpengine.
+table-prefix | string | | `wp_` | | The table prefix to use. Primarily used for WordPress configuration.
 update-method | enum | X | | composer, drush, wpcli | The process to pull updates for the cms..
 update-message | string | | `Automated Update` | | The commit message used for any updates committed to the project. 
 git-name | string | | `${GIT_NAME}` | | The name to commit items as.
@@ -103,6 +106,8 @@ happens after the update process.
   - [Update with Composer on Pantheon](src/examples/run-update-pantheon-drupal-composer.yml)
 - WordPress
   - [Update with WPCLI on Pantheon](src/examples/run-update-pantheon-wordpress-wpcli.yml)
+  - [Update with WPCLI on WPEngine](src/examples/run-update-wpengine-wordpress-wpcli.yml)
+  - [Update with WPCLI on WPEngine (MultiSite)](src/examples/run-update-wpengine-wordpress-wpcli-multisite.yml)
 
 ## Testing
 

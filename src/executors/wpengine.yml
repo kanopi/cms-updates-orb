@@ -11,8 +11,8 @@ parameters:
 docker:
   - image: cimg/php:<<parameters.php-version>>
     auth:
-      username: $DOCKERHUB_USER
-      password: $DOCKERHUB_PASS
+      username: ${DOCKERHUB_USER}
+      password: ${DOCKERHUB_PASS}
     environment:
       HOSTING: wpengine
       DB_HOST: db
@@ -24,8 +24,8 @@ docker:
   - image: mysql:<<parameters.db-version>>
     name: db
     auth:
-      username: $DOCKERHUB_USER
-      password: $DOCKERHUB_PASS
+      username: ${DOCKERHUB_USER}
+      password: ${DOCKERHUB_PASS}
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: default

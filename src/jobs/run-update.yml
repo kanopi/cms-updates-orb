@@ -32,7 +32,7 @@ parameters:
   site-hosting:
     description: "What hosting is the site using?"
     type: enum
-    enum: ["general", "pantheon"]
+    enum: ["general", "pantheon", "wpengine"]
     default: "general"
   site-id:
     description: "The site name on the remote host to pull information from"
@@ -42,11 +42,23 @@ parameters:
     description: "The environment on the remote host to pull information from."
     type: string
     default: ""
+  is-multisite:
+    description: "Is this site a multi-site."
+    type: boolean
+    default: false
+  multisite-subdomains:
+    description: "Is the WordPress multisite a subdomains multisite?"
+    type: boolean
+    default: false
   db-type:
     description: "What is the method for pulling the database."
     type: enum
     enum: ["custom", "drush", "wpcli"]
     default: "custom"
+  table-prefix:
+    description: "The table prefix to use. Primarily used for WordPress configuration."
+    type: string
+    default: "wp_"
   update-method:
     description: "The update-method used for running updates."
     type: enum
@@ -68,6 +80,9 @@ parameters:
     type: enum
     default: '2'
     enum: ['1', '2']
+  run-local:
+    type: boolean
+    default: false
   cms-updates-config-repo:
     description: 'The repo to pull down from the configuration.'
     type: string
@@ -100,12 +115,23 @@ steps:
       steps:
         - ci-tools/install-wpcli
   # Download Configuration Repo
-  - run:
-      name: Install Configuration
-      command: |
-        git clone <<parameters.cms-updates-config-repo>> $HOME/config
-        cd $HOME/config
-        git checkout <<parameters.cms-updates-version>>
+  - unless:
+      condition: <<parameters.run-local>>
+      steps:
+        - run:
+            environment:
+              CONFIG_REPO: <<parameters.cms-updates-config-repo>>
+              CONFIG_VERSION: <<parameters.cms-updates-version>>
+            name: Install Configuration
+            command: |
+              git clone $CONFIG_REPO $HOME/config
+              cd $HOME/config
+              git checkout $CONFIG_VERSION
+  - when:
+      condition: <<parameters.run-local>>
+      steps:
+        - checkout:
+            path: /home/circleci/config
   # Checkout Project
   - run-step:
       hook: 'checkout'
@@ -124,8 +150,18 @@ steps:
       hook: 'start'
       steps:
         - run:
+            name: Install related tools
+            command: |
+              sudo apt update >/dev/null;
+              sudo apt install -y --no-install-recommends >/dev/null \
+                mysql-client \
+                pv \
+                rsync
+        - run:
             name: Copy Scripts
-            command: sudo cp ${HOME}/config/config/bin/* /usr/local/bin/
+            command: |
+              chmod +x ${HOME}/config/config/bin/*
+              sudo cp ${HOME}/config/config/bin/* /usr/local/bin/
         - when:
             condition:
               equal: ["pantheon", <<parameters.site-hosting>>]
@@ -134,12 +170,29 @@ steps:
                   name: Install PHP Packages
                   command: |
                     sudo pecl update-channels
-                    sudo pecl install \
+                    sudo pecl install >/dev/null </dev/null \
                       redis
               - run:
                   name: Link Config
                   command: |
                     sudo ln -sf ${HOME}/config/config/hosting/pantheon/pantheon.ini /etc/php.d/pantheon.ini
+        - when:
+            condition:
+              equal: ["wpengine", <<parameters.site-hosting>>]
+            steps:
+              # Should I run a check on this to see if necessary?
+              - install-wp-core
+              - run:
+                  environment:
+                    TABLE_PREFIX: <<parameters.table-prefix>>
+                  name: Setup WPConfig
+                  command: |
+                    wp config create \
+                      --dbname="${DB_NAME}" \
+                      --dbuser="${DB_USER}" \
+                      --dbpass="${DB_PASS}" \
+                      --dbhost="${DB_HOST}" \
+                      --dbprefix="${TABLE_PREFIX}"
         - run:
             name: Start PHP Server
             command: php -S 0.0.0.0:80
@@ -149,13 +202,6 @@ steps:
   - run-step:
       hook: 'pull-db'
       steps:
-        - run:
-            name: Install DB related tools
-            command: |
-              sudo apt update
-              sudo apt install \
-                mysql-client \
-                pv
         - when:
             condition:
               equal: ["pantheon", <<parameters.site-hosting>>]
@@ -176,7 +222,13 @@ steps:
             steps:
               - pull-db-wpengine:
                   site-id: '<<parameters.site-id>>'
-                  site-env: '<<parameters.site-env>>'
+              - when:
+                  condition: <<parameters.is-multisite>>
+                  steps:
+                    - run:
+                        name: Convert to Multi Site
+                        command: |
+                          wp core multisite-convert <<# parameters.multisite-subdomains >>--subdomains<</ parameters.multisite-subdomains >>
         - when:
             condition:
               equal: ["general", <<parameters.site-hosting>>]
@@ -236,6 +288,9 @@ steps:
   - run-step:
       hook: 'commit'
       steps:
+        - run:
+            name: Ignore File Mode
+            command: git config core.filemode false
         - run:
             name: Git Status
             command: git status

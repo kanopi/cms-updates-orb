@@ -16,6 +16,9 @@ parameters:
     type: enum
     default: '2'
     enum: [ '1', '2' ]
+  run-local:
+    type: boolean
+    default: false
 steps:
   - when:
       condition:
@@ -46,9 +49,6 @@ steps:
       condition:
         equal: ["composer", <<parameters.update-method>>]
       steps:
-        - run:
-            name: Install Tools
-            command: sudo apt install rsync -y
         - run:
             name: Install Composer Version
             command: sudo composer self-update --<<parameters.composer-version>>
@@ -121,5 +121,9 @@ steps:
             command: project-versions diff wpcli /tmp/output.md /tmp/before_update.json /tmp/after_update.json
         - clear-cache-wpcli:
             docroot: <<parameters.docroot>>
-  - store_artifacts:
-      path: /tmp
+  # Do not try to store items when running locally
+  - unless:
+      condition: <<parameters.run-local>>
+      steps:
+        - store_artifacts:
+            path: /tmp
