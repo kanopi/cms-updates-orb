@@ -2,6 +2,6 @@
 
 set -e
 
-docker run -it --rm -v "$PWD:/project" circleci/circleci-cli sh -c 'circleci orb pack /project/src > /project/test.yml'
-docker run -it --rm -v "$PWD:/project" circleci/circleci-cli circleci orb validate /project/test.yml
-rm test.yml || true
+docker run -it --rm -v "$PWD:/project" circleci/circleci-cli sh -c 'circleci orb pack /project/src > /project/validate.yml'
+docker run -it --rm -v "$PWD:/project" circleci/circleci-cli circleci orb validate /project/validate.yml
+rm validate.yml || true
