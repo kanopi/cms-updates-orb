@@ -91,6 +91,10 @@ parameters:
     default: 'main'
     description: 'Version of CMS Update Script to download.'
     type: string
+  exclude-pr:
+    default: false
+    description: "Exclude PR from the Process"
+    type: boolean
 steps:
   # Add SSH Key
   - ci-tools/copy-ssh-key:
@@ -313,12 +317,15 @@ steps:
             # @Todo: Create Task in Teamwork
             # @Todo: Create Entry in Harvest
   # Create Pull Request In Remote
-  - run-step:
-      hook: 'create-pr'
+  - unless:
+      condition: <<parameters.exclude-pr>>
       steps:
-        - run:
-            environment:
-              UPDATE_BRANCH: <<parameters.update-branch>>
-              PR_BRANCH: <<parameters.pr-branch>>
-            name: Create/Update PR In Github
-            command: create-pr
+        - run-step:
+            hook: 'create-pr'
+            steps:
+              - run:
+                  environment:
+                    UPDATE_BRANCH: <<parameters.update-branch>>
+                    PR_BRANCH: <<parameters.pr-branch>>
+                  name: Create/Update PR In Github
+                  command: create-pr

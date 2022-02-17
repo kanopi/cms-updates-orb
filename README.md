@@ -60,6 +60,7 @@ git-email | string | | `${GIT_EMAIL}` | | The email to commit items as.
 composer-version | enum | | `2` | 1, 2 | The version of composer to install and use.
 cms-updates-config-repo | string | | `git@github.com:kanopi/cms-updates` | | The repo where configuration is stored for everything.
 cms-updates-version | string | | `main` | | The branch/commit/tag to checkout and use for the configuration. This will changed based upon the version published.
+exclude-pr | boolean | | `false` | | Should the Pull Request be excluded as part of the update process
 
 ### Hooks
 
