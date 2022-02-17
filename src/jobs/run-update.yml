@@ -289,6 +289,9 @@ steps:
       hook: 'commit'
       steps:
         - run:
+            name: Ignore File Mode
+            command: git config core.filemode false
+        - run:
             name: Git Status
             command: git status
         - run:
