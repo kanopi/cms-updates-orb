@@ -152,8 +152,8 @@ steps:
         - run:
             name: Install related tools
             command: |
-              sudo apt update
-              sudo apt install \
+              sudo apt update >/dev/null;
+              sudo apt install -y --no-install-recommends >/dev/null \
                 mysql-client \
                 pv \
                 rsync
@@ -170,7 +170,7 @@ steps:
                   name: Install PHP Packages
                   command: |
                     sudo pecl update-channels
-                    sudo pecl install \
+                    sudo pecl install >/dev/null </dev/null \
                       redis
               - run:
                   name: Link Config

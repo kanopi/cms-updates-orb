@@ -50,9 +50,6 @@ steps:
         equal: ["composer", <<parameters.update-method>>]
       steps:
         - run:
-            name: Install Tools
-            command: sudo apt install rsync -y
-        - run:
             name: Install Composer Version
             command: sudo composer self-update --<<parameters.composer-version>>
         - run:
