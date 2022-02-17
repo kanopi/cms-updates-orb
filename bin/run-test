@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+
+# Exit if there is an error.
+set -e
+
+# Output all steps if DEBUG=1 is set.
+if [[ "${DEBUG}" != "" ]]; then
+  set -ex
+fi
+
+BASEDIR=$(dirname $(dirname "$0"))
+
+# Check to see if the environment file exists then source it
+if [[ -f $BASEDIR/.env ]]; then
+  source $BASEDIR/.env
+fi
+
+
+# Confirm if Test File Exists
+TEST=$1
+if [[ "${TEST}" == "" ]]; then
+  echo "TEST is required argument"
+  exit 1
+fi
+
+# Used to check if set.
+get_env() {
+    local output=""
+    for var in "$@"
+    do
+        local val=${!var}
+        if [[ "${val}" == "" ]]; then
+            echo "$var variable not set"
+            exit 1
+        fi
+        output="${output}-e ${var}=${val} "
+    done
+    echo "${output}"
+}
+
+# Check to see environment variables are set.
+ENV_VARS=$(
+  get_env \
+  "COMPOSER_AUTH" \
+  "DOCKERHUB_USER" \
+  "DOCKERHUB_PASS" \
+  "GITHUB_TOKEN" \
+  "TERMINUS_TOKEN" \
+  "USER_SSH_KEY" \
+  "GIT_EMAIL" \
+  "GIT_NAME"
+)
+
+# Publish
+TAG="dev:alpha"
+
+echo "Publishing ${TAG} version..."
+
+./bin/publish ${TAG} >/dev/null 2>&1
+
+# Create the Config
+echo "Processing Config..."
+circleci config process ./tests/test.yml | tee ./tests/process.yml >/dev/null 2>&1
+
+# Delete the Auth Section For All Executors
+echo "Removing auth blocks..."
+docker run --rm -v "${PWD}":/workdir mikefarah/yq eval -i 'del(.jobs.[]].docker.[].auth)' /workdir/tests/process.yml >/dev/null 2>&1
+
+# Run the Build Process
+echo "Running Build..."
+circleci build ${ENV_VARS} -c ./tests/process.yml
