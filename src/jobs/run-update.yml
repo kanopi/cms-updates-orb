@@ -193,13 +193,6 @@ steps:
                       --dbpass="${DB_PASS}" \
                       --dbhost="${DB_HOST}" \
                       --dbprefix="${TABLE_PREFIX}"
-              - when:
-                  condition: <<parameters.is-multisite>>
-                  steps:
-                    - run:
-                        name: Convert to Multi Site
-                        command: |
-                          wp core multisite-convert <<# parameters.multisite-subdomains >>--subdomains<</ parameters.multisite-subdomains >>
         - run:
             name: Start PHP Server
             command: php -S 0.0.0.0:80
@@ -229,6 +222,13 @@ steps:
             steps:
               - pull-db-wpengine:
                   site-id: '<<parameters.site-id>>'
+              - when:
+                  condition: <<parameters.is-multisite>>
+                  steps:
+                    - run:
+                        name: Convert to Multi Site
+                        command: |
+                          wp core multisite-convert <<# parameters.multisite-subdomains >>--subdomains<</ parameters.multisite-subdomains >>
         - when:
             condition:
               equal: ["general", <<parameters.site-hosting>>]
