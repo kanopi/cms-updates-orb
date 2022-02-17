@@ -124,7 +124,7 @@ steps:
             command: project-versions diff wpcli /tmp/output.md /tmp/before_update.json /tmp/after_update.json
         - clear-cache-wpcli:
             docroot: <<parameters.docroot>>
-
+  # Do not try to store items when running locally
   - unless:
       condition: <<parameters.run-local>>
       steps:

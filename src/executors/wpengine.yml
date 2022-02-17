@@ -4,6 +4,10 @@ parameters:
     type: enum
     enum: ['7.4', '8.0', '8.1']
     default: '7.4'
+  db-version:
+    description: "Tag used for MySQL version. Image: mariadb"
+    type: string
+    default: '5.7'
 docker:
   - image: cimg/php:<<parameters.php-version>>
     auth:
