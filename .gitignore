@@ -1,5 +1,3 @@
 .idea
 /test.yml
-/process.yml
-/validate.yml
-.env
+/.env
