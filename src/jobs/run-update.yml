@@ -256,6 +256,19 @@ steps:
       condition:
         equal: ["drupal7", <<parameters.cms>>]
       steps:
+        # For Pantheon Drupal 7 using Drush to update. Use Pantheon's Drop-7.
+        - when:
+            condition:
+              and:
+                - equal: ["pantheon", <<parameters.site-hosting>>]
+                - equal: ["drush", <<parameters.update-method>>]
+            steps:
+              - run:
+                  name: Get the Pantheon Web Files
+                  command: |
+                    git clone https://github.com/pantheon-systems/drops-7 /tmp/drops-7
+                    cd <<parameters.docroot>>
+                    rsync -avz /tmp/drops-7/* ./
         - run-step:
             hook: 'update'
             steps:
