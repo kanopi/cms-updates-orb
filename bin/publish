@@ -4,16 +4,18 @@
 set -e
 
 # If Env is Present Include It
-if [[ -f ".env" ]]; then
+if [[ -f "./.env" ]]; then
   . ./.env
 fi
 
-if [[ "${CIRCLECI_TOKEN}" == "" ]]; then
-  echo "CIRCLECI_TOKEN not set"
+CIRCLECI_CLI_TOKEN="${CIRCLE_TOKEN}"
+
+if [[ "${CIRCLECI_CLI_TOKEN}" == "" ]]; then
+  echo "CIRCLECI_CLI_TOKEN not set"
   exit 1
 fi
 
 TAG=${1:-'dev:alpha'}
-docker run -it --rm -e CIRCLECI_TOKEN -v "$PWD:/project" circleci/circleci-cli sh -c 'circleci orb pack /project/src > /project/orb.yml'
-docker run -it --rm -e CIRCLECI_TOKEN -v "$PWD:/project" circleci/circleci-cli circleci orb publish /project/orb.yml kanopi/cms-updates@${TAG}
+docker run -it --rm -e CIRCLECI_CLI_TOKEN -v "$PWD:/project" circleci/circleci-cli sh -c 'circleci orb pack /project/src > /project/orb.yml'
+docker run -it --rm -e CIRCLECI_CLI_TOKEN -v "$PWD:/project" circleci/circleci-cli circleci orb publish /project/orb.yml kanopi/cms-updates@${TAG}
 rm orb.yml || true

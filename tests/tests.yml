@@ -4,9 +4,22 @@ orbs:
   # Todo: Figure out a way to make the tag dynamic in local build.
   cms-updates: kanopi/cms-updates@dev:alpha
 
+#####
+## The following is an outline of the items to test. Adding tests is as simple as
+## adding a job below.
+##
+## The syntax/format should look similar to this:
+##
+## - cms-updates/run-update:
+##     name: "test name" <= This should be in quotes and preferred not to use spaces
+##     run-local: true <= This is a required parameter for items to run local as ths will use this source
+##     ... <= Any required parameters can happen after this. Consult with the README.md for all params.
+#####
+
 workflows:
   test:
     jobs:
+      # Drupal 8+
       - cms-updates/run-update:
           name: "coit-8"
           cms: "drupal"
@@ -19,6 +32,19 @@ workflows:
           site-env: "live"
           update-method: "composer"
           run-local: true
+      - cms-updates/run-update:
+          name: "mises-api"
+          cms: "drupal"
+          repo: "git@github.com:kanopi/mises-api"
+          pr-branch: "main"
+          docroot: "web"
+          update-branch: "cms-updates/test"
+          site-hosting: "pantheon"
+          site-id: "mises-api"
+          site-env: "dev"
+          update-method: "composer"
+          run-local: true
+      # Drupal 7
       - cms-updates/run-update:
           name: "coit-spot-removal"
           cms: "drupal7"
@@ -42,17 +68,18 @@ workflows:
           update-method: "drush"
           run-local: true
       - cms-updates/run-update:
-          name: "mises-api"
-          cms: "drupal"
-          repo: "git@github.com:kanopi/mises-api"
-          pr-branch: "main"
-          docroot: "web"
+          name: "maui"
+          cms: "drupal7"
+          repo: "git@github.com:kanopi/maui"
+          docroot: 'web'
+          pr-branch: "master"
           update-branch: "cms-updates/test"
           site-hosting: "pantheon"
-          site-id: "mises-api"
-          site-env: "dev"
-          update-method: "composer"
+          site-id: "maui-resort-rentals"
+          site-env: "live"
+          update-method: "drush"
           run-local: true
+      # WordPress
       - cms-updates/run-update:
           name: "kanopi-2019"
           cms: "wordpress"
