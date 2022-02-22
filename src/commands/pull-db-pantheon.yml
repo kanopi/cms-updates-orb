@@ -24,5 +24,20 @@ steps:
       environment:
         SITE_ID: <<parameters.site-id>>
         SITE_ENV: <<parameters.site-env>>
-      name: Create and Pull Database From Pantheon
-      command: pull-db-pantheon
+      name: Creating a new backup
+      command: terminus backup:create ${SITE_ID}.${SITE_ENV} --element=db
+      no_output_timeout: 30m
+  - run:
+      environment:
+        SITE_ID: <<parameters.site-id>>
+        SITE_ENV: <<parameters.site-env>>
+      name: Downloading Backup
+      command: terminus backup:get ${SITE_ID}.${SITE_ENV} --element=db --to="/tmp/db.sql.gz"
+      no_output_timeout: 30m
+  - run:
+      environment:
+        SITE_ID: <<parameters.site-id>>
+        SITE_ENV: <<parameters.site-env>>
+      name: Downloading Backup
+      command: zcat < /tmp/db.sql.gz | mysql -h ${DB_HOST} -u ${DB_USER} -p${DB_PASS} ${DB_NAME}
+      no_output_timeout: 30m

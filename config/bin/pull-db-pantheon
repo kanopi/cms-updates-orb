@@ -1,6 +1,0 @@
-#!/usr/bin/env bash
-
-TMPFILE="/tmp/db.sql.gz"
-terminus backup:create ${SITE_ID}.${SITE_ENV} --element=db
-terminus backup:get ${SITE_ID}.${SITE_ENV} --element="db" --to="${TMPFILE}"
-zcat < ${TMPFILE} | pv --eta --progress --size `gzip -l ${TMPFILE} | sed -n 2p | awk '{print $2}'` --name '  Importing.. ' | mysql -h ${DB_HOST} -u ${DB_USER} -p${DB_PASS} ${DB_NAME}
