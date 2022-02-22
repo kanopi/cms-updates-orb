@@ -57,6 +57,7 @@ $settings = array (
     'file_public_path' => 'sites/default/files',
     'file_private_path' => 'sites/default/files/private',
     'file_directory_path' => 'sites/default/files',
+    'file_temporary_path' => '/tmp',
     'css_gzip_compression' => false,
     'js_gzip_compression' => false,
     'page_compression' => false,
