@@ -38,29 +38,34 @@ workflows:
 
 The following parameters are also available for use within the workflow job.
 
+<!-- Parameter Table Start -->
+
 Parameter | Type | Required | Default | Options | Description
 ----------|------|----------|---------|---------|-------------
-php-version | enum | | 7.4 | 7.4, 8.0, 8.1| The PHP Version to use for the build.
-cms | enum | X | | drupal, drupal7, wordpress | The CMS we should be running updates on.
-repo | string | | `${CIRCLE_REPOSITORY_URL}` | | The url of the repository to clone.
-pr-branch | string | | `${CIRCLE_BRANCH}` | | What branch should we be creating a Pull Request For.
-docroot | string | | `.` | | The location where the projects document root is. Examples are web, docroot, http.
-update-branch | string | | `automated/cms-updates` | | The name of the branch to run updates in.
-site-hosting | enum | | `general` | general, pantheon, wpengine | The name of the hosting set up to use. This will provide the stacks for the project.
-site-id | string | | | | The site name/id on the hosting provider to pull the database from.
-site-env | string | | | | The environment on the hosting provider to pull the database from.
-is-multisite | boolean | | false | | | Is this site a multi-site. Primarily used for regenerating the wp-config.php
-multisite-subdomains | boolean | | false | | | Is this site a subdomain multi-site. Primarily used for regenerating the wp-config.php
-db-type | enum | | `custom` | custom, drush, wpcli | The process used for pulling a database from the remote hosting provider. **NOTE** This is only used _IF_ the site-hosting is *NOT* one of the following acquia, pantheon, wpengine.
-table-prefix | string | | `wp_` | | The table prefix to use. Primarily used for WordPress configuration.
-update-method | enum | X | | composer, drush, wpcli | The process to pull updates for the cms..
-update-message | string | | `Automated Update` | | The commit message used for any updates committed to the project.
-git-name | string | | `${GIT_NAME}` | | The name to commit items as.
-git-email | string | | `${GIT_EMAIL}` | | The email to commit items as.
-composer-version | enum | | `2` | 1, 2 | The version of composer to install and use.
-cms-updates-config-repo | string | | `git@github.com:kanopi/cms-updates` | | The repo where configuration is stored for everything.
-cms-updates-version | string | | `main` | | The branch/commit/tag to checkout and use for the configuration. This will changed based upon the version published.
-exclude-pr | boolean | | `false` | | Should the Pull Request be excluded as part of the update process
+cms | enum | X |  | drupal, drupal7, wordpress | Type of CMS to run updates on.
+cms-updates-config-repo | string |  | git@github.com:kanopi/cms-updates | drupal, drupal7, wordpress | The repo to pull down from the configuration.
+cms-updates-version | string |  | main | drupal, drupal7, wordpress | Version of CMS Update Script to download.
+composer-version | enum |  | 2 | 1, 2 | Version of composer to use. Default 2.x
+db-type | enum |  | custom | custom, drush, wpcli | What is the method for pulling the database.
+docroot | string |  | . | custom, drush, wpcli | Where is the DOCROOT of the project?
+exclude-pr | boolean |  | false | custom, drush, wpcli | Exclude PR from the Process
+git-email | string |  | ${GIT_EMAIL} | custom, drush, wpcli | The email to use for commits
+git-name | string |  | ${GIT_NAME} | custom, drush, wpcli | The name to use for commits
+is-multisite | boolean |  | false | custom, drush, wpcli | Is this site a multi-site.
+multisite-subdomains | boolean |  | false | custom, drush, wpcli | Is the WordPress multisite a subdomains multisite?
+php-version | enum |  | 7.4 | 7.4, 8.0, 8.1 | Tag used for PHP version. Image: cimg/php
+pr-branch | string |  | ${CIRCLE_BRANCH} | 7.4, 8.0, 8.1 | What is the main branch of the project that should be used.
+repo | string |  | ${CIRCLE_REPOSITORY_URL} | 7.4, 8.0, 8.1 | The url to use for cloning the repo
+run-local | boolean |  | false | 7.4, 8.0, 8.1 | 
+site-env | string |  |  | 7.4, 8.0, 8.1 | The environment on the remote host to pull information from.
+site-hosting | enum |  | general | general, pantheon, wpengine | What hosting is the site using?
+site-id | string |  |  | general, pantheon, wpengine | The site name on the remote host to pull information from
+table-prefix | string |  | wp_ | general, pantheon, wpengine | The table prefix to use. Primarily used for WordPress configuration.
+update-branch | string |  | automated/cms-updates | general, pantheon, wpengine | The name of the branch to run updates with.
+update-message | string |  | Automated Updated | general, pantheon, wpengine | Commit message used for changed items.
+update-method | enum | X |  | composer, drush, wpcli | The update-method used for running updates.
+
+<!-- Parameter Table End -->
 
 ### Hooks
 

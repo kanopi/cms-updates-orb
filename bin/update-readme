@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+
+set -e
+
+if [[ "${DEBUG}" != "" ]]; then
+  set -ex
+fi
+
+######
+### Run Updates on Parameter Table
+######
+
+CHECKFILE="src/jobs/run-update.yml"
+CMD=$(which yq || true)
+
+if [[ "${CMD}" == "" ]]; then
+  echo "YQ Binary not installed reverting to Docker version..."
+  CMD="docker run --rm -e KEY -v "${PWD}":/workdir mikefarah/yq"
+  CHECKFILE="/workdir/${CHECKFILE}"
+fi
+
+KEYS=$(${CMD} '.parameters | keys | sort | join(" ")' ${CHECKFILE})
+
+START='<!-- Parameter Table Start -->'
+END='<!-- Parameter Table End -->'
+HEADER="Parameter | Type | Required | Default | Options | Description"
+DIVIDER="----------|------|----------|---------|---------|-------------"
+
+printf -v OUTPUT "%s\n\n%s\n%s" "${START}" "${HEADER}" ${DIVIDER}
+
+for KEY in ${KEYS}
+do
+  TYPE=$(KEY="${KEY}" ${CMD} eval '.parameters[env(KEY)].type' ${CHECKFILE})
+  DEFAULT_VALUE=$(KEY="${KEY}" ${CMD} eval '.parameters[env(KEY)].default' ${CHECKFILE})
+  IS_REQUIRED=$([[ "${DEFAULT_VALUE}" == "null" ]] && echo "X" || echo "")
+  DEFAULT=$([[ "${DEFAULT_VALUE}" == "null" ]] && echo "" || echo "${DEFAULT_VALUE}")
+  if [[ "${TYPE}" == "enum" ]]; then
+    OPTIONS=$(KEY="${KEY}" ${CMD} eval '.parameters[env(KEY)].enum | sort | join(", ")' ${CHECKFILE})
+  fi
+  DESCRIPTION=$(KEY="${KEY}" ${CMD} eval '.parameters[env(KEY)].description' ${CHECKFILE})
+
+  # If Default Value is null set to empty string
+  if [[ "${DEFAULT_VALUE}" == "null" ]]; then
+    DEFAULT_VALUE=""
+  fi
+
+  if [[ "${DESCRIPTION}" == "null" ]]; then
+    DESCRIPTION=""
+  fi
+
+  printf -v LINE "%s | %s | %s | %s | %s | %s" "${KEY}" "${TYPE}" "${IS_REQUIRED}" "${DEFAULT_VALUE}" "${OPTIONS}" "${DESCRIPTION}"
+  printf -v OUTPUT "%s\n%s" "${OUTPUT}" "${LINE}"
+done
+
+printf -v OUTPUT "%s\n\n%s" "${OUTPUT}" "${END}"
+
+echo "${OUTPUT}" > /tmp/parameter-table.md
+
+sed -e "/${START}/,/${END}/!b" -e "/${END}/!d;r /tmp/parameter-table.md" -e 'd' ./README.md > /tmp/README.md
+
+mv /tmp/README.md ./README.md
