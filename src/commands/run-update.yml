@@ -70,14 +70,14 @@ steps:
             steps:
               - run:
                   name: Run Composer Update
-                  command: composer update -W --no-interaction --optimize-autoloader
+                  command: COMPOSER_DISCARD_CHANGES=true composer update -W --no-interaction --optimize-autoloader
         - unless:
             condition:
               equal: ["2", <<parameters.composer-version>>]
             steps:
               - run:
                   name: Run Composer Update
-                  command: composer update --no-interaction --optimize-autoloader
+                  command: COMPOSER_DISCARD_CHANGES=true composer update --no-interaction --optimize-autoloader
         - run:
             name: Export Package List After Update
             command: composer show --no-interaction -i -f json > /tmp/after_update.json
