@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
 
-# Abort if anything fails.
+# Exit if there is an error.
 set -e
+
+# Output all steps if DEBUG=1 is set.
+if [[ "${DEBUG}" != "" ]]; then
+  set -ex
+fi
 
 # If Env is Present Include It
 if [[ -f "./.env" ]]; then
@@ -16,6 +21,6 @@ if [[ "${CIRCLECI_CLI_TOKEN}" == "" ]]; then
 fi
 
 TAG=${1:-'dev:alpha'}
-docker run -it --rm -e CIRCLECI_CLI_TOKEN -v "$PWD:/project" circleci/circleci-cli sh -c 'circleci orb pack /project/src > /project/orb.yml'
-docker run -it --rm -e CIRCLECI_CLI_TOKEN -v "$PWD:/project" circleci/circleci-cli circleci orb publish /project/orb.yml kanopi/cms-updates@${TAG}
+docker run -it --rm -e CIRCLECI_CLI_TOKEN="${CIRCLECI_CLI_TOKEN}" -v "$PWD:/project" circleci/circleci-cli sh -c 'circleci orb pack /project/src > /project/orb.yml'
+docker run -it --rm -e CIRCLECI_CLI_TOKEN="${CIRCLECI_CLI_TOKEN}" -v "$PWD:/project" circleci/circleci-cli circleci orb publish /project/orb.yml kanopi/cms-updates@${TAG}
 rm orb.yml || true
