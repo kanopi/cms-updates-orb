@@ -17,8 +17,8 @@ docker:
       DB_HOST: db
       DB_PORT: 3306
       DB_NAME: default
-      DB_USER: user
-      DB_PASS: user
+      DB_USER: root
+      DB_PASS: root
       TZ: America/Los_Angeles
   - image: mysql:<<parameters.db-version>>
     name: db
