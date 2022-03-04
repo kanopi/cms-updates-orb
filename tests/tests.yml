@@ -44,6 +44,30 @@ workflows:
           site-env: "dev"
           update-method: "composer"
           run-local: true
+      - cms-updates/run-update:
+          name: "explo"
+          cms: "drupal"
+          repo: "git@github.com:kanopi/explo"
+          pr-branch: "main"
+          docroot: "web"
+          update-branch: "cms-updates/test"
+          site-hosting: "pantheon"
+          site-id: "explo"
+          site-env: "dev"
+          update-method: "composer"
+          run-local: true
+      - cms-updates/run-update:
+          name: "flysfobuild"
+          cms: "drupal"
+          repo: "git@github.com:kanopi/flysfobuild"
+          pr-branch: "main"
+          docroot: "web"
+          update-branch: "cms-updates/test"
+          site-hosting: "pantheon"
+          site-id: "flysfo"
+          site-env: "dev"
+          update-method: "composer"
+          run-local: true
       # Drupal 7
       - cms-updates/run-update:
           name: "coit-spot-removal"
