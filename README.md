@@ -60,6 +60,7 @@ run-local | boolean |  | false | 7.4, 8.0, 8.1 |
 site-env | string |  |  | 7.4, 8.0, 8.1 | The environment on the remote host to pull information from.
 site-hosting | enum |  | general | general, pantheon, wpengine | What hosting is the site using?
 site-id | string |  |  | general, pantheon, wpengine | The site name on the remote host to pull information from
+skip-pr-if-opened | boolean |  | false | general, pantheon, wpengine | Cancel the step if there is a PR already opened
 table-prefix | string |  | wp_ | general, pantheon, wpengine | The table prefix to use. Primarily used for WordPress configuration.
 update-branch | string |  | automated/cms-updates | general, pantheon, wpengine | The name of the branch to run updates with.
 update-message | string |  | Automated Updated | general, pantheon, wpengine | Commit message used for changed items.
