@@ -100,9 +100,17 @@ steps:
   - ci-tools/copy-ssh-key:
       decode-params: '-di'
   # Configure Git Client
-  - orb-tools/configure-git:
-      user-name: <<parameters.git-name>>
-      user-email: <<parameters.git-email>>
+  - run:
+      name: Configure Git Client
+      command: |
+        if [ -z "<<parameters.git-name>>" ] || [ -z "<<parameters.git-email>>" ]; then
+            # No user name or email set, default to CIRCLE_USERNAME-based identifiers
+            git config --global user.name "$CIRCLE_USERNAME"
+            git config --global user.email "$CIRCLE_USERNAME@users.noreply.github.com"
+        else
+            git config --global user.name "<<parameters.git-name>>"
+            git config --global user.email "<<parameters.git-email>>"
+        fi
   # Install Tools
   - ci-tools/install-github-cli:
       version: '2.4.0'
