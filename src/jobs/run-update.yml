@@ -337,8 +337,20 @@ steps:
             hook: 'create-pr'
             steps:
               - run:
-                  environment:
-                    UPDATE_BRANCH: <<parameters.update-branch>>
-                    PR_BRANCH: <<parameters.pr-branch>>
                   name: Create/Update PR In Github
-                  command: create-pr
+                  command: |
+                    set -xe
+
+                    ID=$(gh pr list --head <<parameters.update-branch>> --json 'number' --jq '.[].number')
+
+                    echo "ID Found: ${ID}"
+
+                    if [[ "${ID}" == "" ]]; then
+                      gh pr create \
+                        --base <<parameters.pr-branch>> \
+                        --title "Automated Updates" \
+                        --body-file /tmp/output.md
+                    else
+                      gh pr edit ${ID} \
+                        --body-file /tmp/output.md
+                    fi
