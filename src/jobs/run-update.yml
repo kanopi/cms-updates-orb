@@ -95,6 +95,10 @@ parameters:
     default: false
     description: "Exclude PR from the Process"
     type: boolean
+  skip-pr-if-opened:
+    default: false
+    description: "Cancel the step if there is a PR already opened"
+    type: boolean
 steps:
   # Add SSH Key
   - ci-tools/copy-ssh-key:
@@ -114,6 +118,20 @@ steps:
   # Install Tools
   - ci-tools/install-github-cli:
       version: '2.4.0'
+  - when:
+      condition:
+        and:
+          - <<parameters.skip-pr-if-opened>>
+          - not: <<parameters.exclude-pr>>
+      steps:
+        - run:
+            name: Check if PR Created
+            command: |
+              ID=$(gh pr list --repo='<<parameters.repo>>' --head <<parameters.update-branch>> --json 'number' --jq '.[].number')
+
+              if [[ "${ID}" != "" ]]; then
+                  circleci-agent step halt
+              fi
   - when:
       condition:
         or:
