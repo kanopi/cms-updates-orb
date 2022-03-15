@@ -24,6 +24,11 @@ steps:
       condition:
         equal: ["drush", <<parameters.update-method>>]
       steps:
+        - run:
+            name: Install Drush Patchfile
+            command: |
+              git clone https://bitbucket.org/davereid/drush-patchfile.git ~/.drush/drush-patchfile
+              drush cc drush
         - clear-cache-drush:
             cms: <<parameters.cms>>
             docroot: <<parameters.docroot>>
