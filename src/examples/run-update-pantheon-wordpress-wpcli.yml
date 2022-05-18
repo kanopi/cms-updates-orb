@@ -5,14 +5,11 @@ usage:
   orbs:
     cms-updates: kanopi/cms-updates@x.y.z
   workflows:
-    nightly_updates:
-      triggers:
-        - schedule:
-            cron: "0 0 * * *"
-            filters:
-              branches:
-                only:
-                  - main
+    automatic-updates:
+      when:
+        and:
+          - equal: [ scheduled_pipeline, << pipeline.trigger_source >> ]
+          - equal: [ "automatic updates", << pipeline.schedule.name >> ]
       jobs:
         - cms-updates/run-update:
             cms: "wordpress"
@@ -20,3 +17,4 @@ usage:
             site-id: "site-machine-name"
             site-env: "live"
             update-method: "wpcli"
+            context: context-name

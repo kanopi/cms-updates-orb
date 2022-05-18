@@ -10,6 +10,8 @@ It will work with the following Content Management Systems (CMS).
 It will allow for updates using a composer method or using the respected
 CMS's tool (Drush/WPCLI).
 
+This uses CircleCI's schedule triggers flows.  Please look at this [video on how to setup triggers](https://www.loom.com/share/9e82734ee48d47809927102f40a0c4ae) in the CircleCI UI. 
+
 For more information please reach out to one of the following people either in slack or email:
 
 * Sean Dietrich <sean@kanopi.com>
