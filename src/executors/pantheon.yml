@@ -33,7 +33,7 @@ docker:
       CACHE_PORT: 6379
       INDEX_HOST: solr
       INDEX_PORT: 8983
-  - image: circleci/redis:<<parameters.cache-version>>
+  - image: cimg/redis:<<parameters.cache-version>>
     name: redis
     auth:
       username: ${DOCKERHUB_USER}
