@@ -11,7 +11,7 @@ parameters:
   cache-version:
     description: "Tag used for Redis version. Image: redis"
     type: string
-    default: '5-alpine'
+    default: '5.0'
   search-version:
     description: "Tag used for Solr version. Image: solr"
     type: string
