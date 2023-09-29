@@ -42,31 +42,32 @@ The following parameters are also available for use within the workflow job.
 
 <!-- Parameter Table Start -->
 
-Parameter | Type | Required | Default | Options | Description
-----------|------|----------|---------|---------|-------------
-cms | enum | X |  | drupal, drupal7, wordpress | Type of CMS to run updates on.
-cms-updates-config-repo | string |  | git@github.com:kanopi/cms-updates | drupal, drupal7, wordpress | The repo to pull down from the configuration.
-cms-updates-version | string |  | main | drupal, drupal7, wordpress | Version of CMS Update Script to download.
-composer-version | enum |  | 2 | 1, 2 | Version of composer to use. Default 2.x
-db-type | enum |  | custom | custom, drush, wpcli | What is the method for pulling the database.
-docroot | string |  | . | custom, drush, wpcli | Where is the DOCROOT of the project?
-exclude-pr | boolean |  | false | custom, drush, wpcli | Exclude PR from the Process
-git-email | string |  | ${GIT_EMAIL} | custom, drush, wpcli | The email to use for commits
-git-name | string |  | ${GIT_NAME} | custom, drush, wpcli | The name to use for commits
-is-multisite | boolean |  | false | custom, drush, wpcli | Is this site a multi-site.
-multisite-subdomains | boolean |  | false | custom, drush, wpcli | Is the WordPress multisite a subdomains multisite?
-php-version | enum |  | 7.4 | 7.4, 8.0, 8.1 | Tag used for PHP version. Image: cimg/php
-pr-branch | string |  | ${CIRCLE_BRANCH} | 7.4, 8.0, 8.1 | What is the main branch of the project that should be used.
-repo | string |  | ${CIRCLE_REPOSITORY_URL} | 7.4, 8.0, 8.1 | The url to use for cloning the repo
-run-local | boolean |  | false | 7.4, 8.0, 8.1 | 
-site-env | string |  |  | 7.4, 8.0, 8.1 | The environment on the remote host to pull information from.
-site-hosting | enum |  | general | general, pantheon, wpengine | What hosting is the site using?
-site-id | string |  |  | general, pantheon, wpengine | The site name on the remote host to pull information from
-skip-pr-if-opened | boolean |  | false | general, pantheon, wpengine | Cancel the step if there is a PR already opened
-table-prefix | string |  | wp_ | general, pantheon, wpengine | The table prefix to use. Primarily used for WordPress configuration.
-update-branch | string |  | automated/cms-updates | general, pantheon, wpengine | The name of the branch to run updates with.
-update-message | string |  | Automated Updated | general, pantheon, wpengine | Commit message used for changed items.
-update-method | enum | X |  | composer, drush, wpcli | The update-method used for running updates.
+Parameter | Type  | Required | Default | Options | Description
+----------|-------|---|---------|---------|-------------
+cms | enum  | X |  | drupal, drupal7, wordpress | Type of CMS to run updates on.
+cms-updates-config-repo | string |   | git@github.com:kanopi/cms-updates | drupal, drupal7, wordpress | The repo to pull down from the configuration.
+cms-updates-version | string |   | main | drupal, drupal7, wordpress | Version of CMS Update Script to download.
+composer-version | enum  |   | 2 | 1, 2 | Version of composer to use. Default 2.x
+db-type | enum  |   | custom | custom, drush, wpcli | What is the method for pulling the database.
+docroot | string |   | . | custom, drush, wpcli | Where is the DOCROOT of the project?
+exclude-pr | boolean |   | false | custom, drush, wpcli | Exclude PR from the Process
+git-email | string |   | ${GIT_EMAIL} | custom, drush, wpcli | The email to use for commits
+git-name | string |   | ${GIT_NAME} | custom, drush, wpcli | The name to use for commits
+is-multisite | boolean |   | false | custom, drush, wpcli | Is this site a multi-site.
+multisite-subdomains | boolean |   | false | custom, drush, wpcli | Is the WordPress multisite a subdomains multisite?
+php-version | enum  |   | 7.4 | 7.4, 8.0, 8.1 | Tag used for PHP version. Image: cimg/php
+pr-branch | string |   | ${CIRCLE_BRANCH} | 7.4, 8.0, 8.1 | What is the main branch of the project that should be used.
+repo | string |   | ${CIRCLE_REPOSITORY_URL} | 7.4, 8.0, 8.1 | The url to use for cloning the repo
+run-local | boolean |   | false | 7.4, 8.0, 8.1 | 
+site-env | string |   |  | 7.4, 8.0, 8.1 | The environment on the remote host to pull information from.
+site-hosting | enum  |   | general | general, pantheon, wpengine | What hosting is the site using?
+site-id | string |   |  | general, pantheon, wpengine | The site name on the remote host to pull information from
+skip-pr-if-opened | boolean |   | false | general, pantheon, wpengine | Cancel the step if there is a PR already opened
+table-prefix | string |   | wp_ | general, pantheon, wpengine | The table prefix to use. Primarily used for WordPress configuration.
+update-branch | string |   | automated/cms-updates | general, pantheon, wpengine | The name of the branch to run updates with.
+update-message | string |   | Automated Updated | general, pantheon, wpengine | Commit message used for changed items.
+update-method | enum  | X |  | composer, drush, wpcli | The update-method used for running updates.
+resource-class | enum  |   |  | small, medium, medium+, large, xlarge, 2xlarge, 2xlarge+ | The size of the circleci container to run.
 
 <!-- Parameter Table End -->
 
