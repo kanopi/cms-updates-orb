@@ -99,6 +99,12 @@ parameters:
     default: false
     description: "Cancel the step if there is a PR already opened"
     type: boolean
+  resource-class:
+    type: enum
+    enum: [small, medium, medium+, large, xlarge, 2xlarge, 2xlarge+]
+    default: medium+
+    description: The resource class to use for the job.
+resource_class: <<parameters.resource-class>>
 steps:
   # Add SSH Key
   - ci-tools/copy-ssh-key:
