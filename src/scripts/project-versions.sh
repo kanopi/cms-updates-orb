@@ -179,10 +179,7 @@ $script diff composer /tmp/output.md ./before_update.json ./after_update.json
 EOL;
 }
 
-$args = $argv;
-list( $script, $action ) = $args;
-array_shift($args);
-array_shift($args);
+$action = $_ENV['VERSION_ACTION'];
 
 switch ($action) {
     case 'diff':
@@ -191,7 +188,10 @@ switch ($action) {
             die;
         }
 
-        list ($type, $output_file_name, $old_file, $new_file) = $args;
+        $type = $_ENV['VERSION_TYPE'];
+        $output_file_name = $_ENV['VERSION_OUTPUT'];
+        $old_file = $_ENV['VERSION_OLD'];
+        $new_file = $_ENV['VERSION_NEW'];
 
         // Review Old File
         $old_file_data = parse_file_data( $old_file );

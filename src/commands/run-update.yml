@@ -44,9 +44,8 @@ steps:
             name: Export Package List After Update
             command: drush pm-list --format=json --status=enabled > /tmp/after_update.json
             path: <<parameters.docroot>>
-        - run:
-            name: Run Diff Report
-            command: project-versions diff drush /tmp/output.md /tmp/before_update.json /tmp/after_update.json
+        - project-version-diff:
+            type: drush
         - clear-cache-drush:
             cms: <<parameters.cms>>
             docroot: <<parameters.docroot>>
@@ -86,9 +85,8 @@ steps:
         - run:
             name: Export Package List After Update
             command: composer show --no-interaction -i -f json > /tmp/after_update.json
-        - run:
-            name: Run Diff Report
-            command: project-versions diff composer /tmp/output.md /tmp/before_update.json /tmp/after_update.json
+        - project-version-diff:
+            type: composer
         - when:
             condition:
               or:
@@ -121,9 +119,8 @@ steps:
             name: Export Package List Before Update
             command: wp plugin list --status=active --format=json > /tmp/after_update.json
             path: <<parameters.docroot>>
-        - run:
-            name: Run Diff Report
-            command: project-versions diff wpcli /tmp/output.md /tmp/before_update.json /tmp/after_update.json
+        - project-version-diff:
+            type: wpcli
         - clear-cache-wpcli:
             docroot: <<parameters.docroot>>
   # Do not try to store items when running locally

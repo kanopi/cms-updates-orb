@@ -122,8 +122,7 @@ steps:
             git config --global user.email "<<parameters.git-email>>"
         fi
   # Install Tools
-  - ci-tools/install-github-cli:
-      version: '2.4.0'
+  - ci-tools/install-github-cli
   - when:
       condition:
         and:
@@ -150,24 +149,6 @@ steps:
         equal: ["wordpress", <<parameters.cms>>]
       steps:
         - ci-tools/install-wpcli
-  # Download Configuration Repo
-  - unless:
-      condition: <<parameters.run-local>>
-      steps:
-        - run:
-            environment:
-              CONFIG_REPO: <<parameters.cms-updates-config-repo>>
-              CONFIG_VERSION: <<parameters.cms-updates-version>>
-            name: Install Configuration
-            command: |
-              git clone $CONFIG_REPO $HOME/config
-              cd $HOME/config
-              git checkout $CONFIG_VERSION
-  - when:
-      condition: <<parameters.run-local>>
-      steps:
-        - checkout:
-            path: /home/circleci/config
   # Checkout Project
   - run-step:
       hook: 'checkout'
@@ -193,11 +174,6 @@ steps:
                 mysql-client \
                 pv \
                 rsync
-        - run:
-            name: Copy Scripts
-            command: |
-              chmod +x ${HOME}/config/config/bin/*
-              sudo cp ${HOME}/config/config/bin/* /usr/local/bin/
         - when:
             condition:
               equal: ["pantheon", <<parameters.site-hosting>>]
@@ -208,10 +184,14 @@ steps:
                     sudo pecl update-channels
                     sudo pecl install >/dev/null </dev/null \
                       redis
-              - run:
-                  name: Link Config
-                  command: |
-                    sudo ln -sf ${HOME}/config/config/hosting/pantheon/pantheon.ini /etc/php.d/pantheon.ini
+              - copy-config-file:
+                  title: pantheon.ini
+                  contents: <<include(config/hosting/pantheon/pantheon.ini)>>
+                  file: /etc/php.d/pantheon.ini
+              - copy-config-file:
+                  title: prepend.php
+                  contents: <<include(config/hosting/pantheon/prepend.php)>>
+                  file: /home/circleci/config/hosting/pantheon/prepend.php
         - when:
             condition:
               equal: ["wpengine", <<parameters.site-hosting>>]
@@ -345,7 +325,7 @@ steps:
             command: git status
         - run:
             name: Check Status
-            command: check-status
+            command: <<include(scripts/check-status.sh)>>
         - run:
             name: Git Add
             command: git add .
