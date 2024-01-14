@@ -1,0 +1,25 @@
+description: >
+  Copy the file contents and create a new file.
+parameters:
+  title:
+    type: string
+    description: Custom name the step
+    default:
+  contents:
+    type: string
+    description: File contents
+  file:
+    type: string
+    description: File output
+steps:
+  - run:
+      name: Copy Config File <<parameters.title>>
+      environment:
+        CONTENTS: <<parameters.contents>>
+        FILE: <<parameters.file>>
+      command: |
+        DIR=$(dirname $FILE)
+        if [[ ! -d $DIR ]]; then
+          mkdir -p $DIR
+        fi
+        echo "${CONTENTS}" | tee $FILE

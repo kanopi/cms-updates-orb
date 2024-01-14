@@ -38,15 +38,15 @@ get_env() {
 
 # Check to see environment variables are set.
 ENV_VARS=$(
-  get_env \
-  "COMPOSER_AUTH" \
-  "DOCKERHUB_USER" \
-  "DOCKERHUB_PASS" \
-  "GITHUB_TOKEN" \
-  "TERMINUS_TOKEN" \
-  "USER_SSH_KEY" \
-  "GIT_EMAIL" \
-  "GIT_NAME"
+  # get_env \
+  # "COMPOSER_AUTH" \
+  # "DOCKERHUB_USER" \
+  # "DOCKERHUB_PASS" \
+  # "GITHUB_TOKEN" \
+  # "TERMINUS_TOKEN" \
+  # "USER_SSH_KEY" \
+  # "GIT_EMAIL" \
+  # "GIT_NAME"
 )
 
 # Publish

@@ -1,0 +1,34 @@
+description: >
+  Check Versions
+parameters:
+  action:
+    type: enum
+    enum: ['diff']
+    default: 'diff'
+    description: Update action
+  type:
+    type: enum
+    enum: ['wpcli', 'composer', 'drush']
+    description: Type of update action happening.
+  output:
+    type: string
+    default: /tmp/output.md
+    description: Name of the MD file where updates go.
+  old:
+    type: string
+    default: /tmp/before_update.json
+    description: Name of the JSON file before the update.
+  new:
+    type: string
+    default: /tmp/after_update.json
+    description: Name of the JSON file after the update.
+steps:
+  - run:
+      name: Run Diff Report
+      environment:
+        VERSION_ACTION: <<parameters.action>>
+        VERSION_TYPE: <<parameters.type>>
+        VERSION_OUTPUT: <<parameters.output>>
+        VERSION_OLD: <<parameters.old>>
+        VERSION_NEW: <<parameters.new>>
+      command: <<include(scripts/project-versions.sh)>>

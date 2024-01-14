@@ -30,4 +30,4 @@ steps:
         SITE_ID: <<parameters.site-id>>
         SITE_ENV: <<parameters.site-env>>
       name: Create and Pull Database From Acquia
-      command: pull-db-acquia
+      command: <<include(scripts/pull-db-acquia.sh)>>
