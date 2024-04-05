@@ -149,7 +149,8 @@ steps:
       condition:
         equal: ["wordpress", <<parameters.cms>>]
       steps:
-        - ci-tools/install-wpcli
+        - ci-tools/install-wpcli:
+            verion: 2.10.0
   # Download Configuration Repo
   - unless:
       condition: <<parameters.run-local>>
