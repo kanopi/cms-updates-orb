@@ -194,6 +194,10 @@ steps:
                 pv \
                 rsync
         - run:
+            name: Setup
+            command: |
+              mysql -h ${DB_HOST} -u ${DB_USER} -p${DB_PASS} -e 'SET GLOBAL max_allowed_packet=1073741824;'
+        - run:
             name: Copy Scripts
             command: |
               chmod +x ${HOME}/config/config/bin/*
