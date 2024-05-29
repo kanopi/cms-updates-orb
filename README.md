@@ -55,11 +55,11 @@ git-email | string |   | ${GIT_EMAIL} | custom, drush, wpcli | The email to use 
 git-name | string |   | ${GIT_NAME} | custom, drush, wpcli | The name to use for commits
 is-multisite | boolean |   | false | custom, drush, wpcli | Is this site a multi-site.
 multisite-subdomains | boolean |   | false | custom, drush, wpcli | Is the WordPress multisite a subdomains multisite?
-php-version | enum  |   | 7.4 | 7.4, 8.0, 8.1 | Tag used for PHP version. Image: cimg/php
-pr-branch | string |   | ${CIRCLE_BRANCH} | 7.4, 8.0, 8.1 | What is the main branch of the project that should be used.
-repo | string |   | ${CIRCLE_REPOSITORY_URL} | 7.4, 8.0, 8.1 | The url to use for cloning the repo
-run-local | boolean |   | false | 7.4, 8.0, 8.1 | 
-site-env | string |   |  | 7.4, 8.0, 8.1 | The environment on the remote host to pull information from.
+php-version | enum  |   | 7.4 | 7.4, 8.0, 8.1, 8.2, 8.3 | Tag used for PHP version. Image: cimg/php
+pr-branch | string |   | ${CIRCLE_BRANCH} | 7.4, 8.0, 8.1, 8.2, 8.3 | What is the main branch of the project that should be used.
+repo | string |   | ${CIRCLE_REPOSITORY_URL} | 7.4, 8.0, 8.1, 8.2, 8.3 | The url to use for cloning the repo
+run-local | boolean |   | false | 7.4, 8.0, 8.1, 8.2, 8.3 |
+site-env | string |   |  | 7.4, 8.0, 8.1, 8.2, 8.3 | The environment on the remote host to pull information from.
 site-hosting | enum  |   | general | general, pantheon, wpengine | What hosting is the site using?
 site-id | string |   |  | general, pantheon, wpengine | The site name on the remote host to pull information from
 skip-pr-if-opened | boolean |   | false | general, pantheon, wpengine | Cancel the step if there is a PR already opened
