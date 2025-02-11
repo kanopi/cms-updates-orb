@@ -16,7 +16,7 @@ echo "Exporting the remote database..."
 ssh ${SSH_URL} "cd ~/public; wp db dump ../${DB_FILE};"
 
 echo "Downloading Database..."
-rsync -azv ${SSH_URL}:~/public/../${DB_FILE} ${LOCAL_FILE}
+rsync -azv ${SSH_URL}:~/${DB_FILE} ${LOCAL_FILE}
 
 echo "Database downloaded. Removing remote db file..."
 ssh ${SSH_URL} "rm ~/public/../${DB_FILE}"
