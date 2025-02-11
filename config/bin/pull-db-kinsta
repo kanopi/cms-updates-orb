@@ -13,7 +13,7 @@ LOCAL_FILE="/tmp/${DB_FILE}"
 SSH_URL="-p ${SITE_PORT:-22} ${SITE_ID}@${SITE_IP}"
 
 echo "Exporting the remote database..."
-ssh ${SSH_URL} "cd ~/public; wp db dump ${DB_FILE};"
+ssh ${SSH_URL} "cd ~/public; wp db dump ../${DB_FILE};"
 
 echo "Downloading Database..."
 rsync -azv ${SSH_URL}:~/public/../${DB_FILE} ${LOCAL_FILE}
