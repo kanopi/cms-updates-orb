@@ -15,7 +15,7 @@ usage:
             cms: "wordpress"
             site-hosting: "kinsta"
             site-ip: "site-ip"
-            site-user: "site-user"
+            site-id: "site-id"
             site-port: "site-port"
             update-method: "composer"
             context: content-name

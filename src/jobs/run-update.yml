@@ -42,6 +42,14 @@ parameters:
     description: "The environment on the remote host to pull information from."
     type: string
     default: ""
+  site-ip:
+    description: "The site IP on the remote host to pull information from"
+    type: string
+    default: ""
+  site-port:
+    description: "The site port on the remote host to pull information from"
+    type: string
+    default: ""
   is-multisite:
     description: "Is this site a multi-site."
     type: boolean
@@ -263,7 +271,7 @@ steps:
               equal: ["kinsta", <<parameters.site-hosting>>]
             steps:
               - pull-db-kinsta:
-                  site-user: '<<parameters.site-user>>'
+                  site-id: '<<parameters.site-id>>'
                   site-ip: '<<parameters.site-ip>>'
                   site-port: '<<parameters.site-port>>'
         - when:

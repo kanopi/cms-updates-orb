@@ -3,14 +3,14 @@
 # Abort if anything fails
 set -e
 
-if [[ "${SITE_USER}" == "" ]]; then
-  echo "SITE_USER variable is required"
+if [[ "${SITE_ID}" == "" ]]; then
+  echo "SITE_ID variable is required"
   exit 1
 fi
 
-DB_FILE="${SITE_USER}.sql"
+DB_FILE="${SITE_ID}.sql"
 LOCAL_FILE="/tmp/${DB_FILE}"
-SSH_URL="-p ${SITE_PORT:-22} ${SITE_USER}@${SITE_IP}"
+SSH_URL="-p ${SITE_PORT:-22} ${SITE_ID}@${SITE_IP}"
 
 echo "Exporting the remote database..."
 ssh ${SSH_URL} "cd ~/public; wp db dump ${DB_FILE};"

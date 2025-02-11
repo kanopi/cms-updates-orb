@@ -157,7 +157,7 @@ workflows:
           pr-branch: "main"
           update-branch: "cms-updates/test"
           site-hosting: "kinsta"
-          site-user: "foxyboxwaxbarcom"
+          site-id: "foxyboxwaxbarcom"
           site-ip: "34.95.13.225"
           site-port: "28998"
           update-method: "composer"
