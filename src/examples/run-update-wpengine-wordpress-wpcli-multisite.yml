@@ -1,5 +1,5 @@
 description: >
-  Run WordPress Updates on Pantheon with WPCLI.
+  Run WordPress Updates on WP Engine with WPCLI.
 usage:
   version: 2.1
   orbs:

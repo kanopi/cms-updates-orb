@@ -1,0 +1,27 @@
+description: >
+  Used for pulling database from Kinsta
+parameters:
+  site-user:
+    description: "The site user on the remote host to pull information from"
+    type: string
+    default: ${HOST_SITE_USER}
+  site-ip:
+    description: "The site ip on the remote host to pull information from"
+    type: string
+    default: ${HOST_SITE_IP}
+  site-port:
+    description: "The site port on the remote host to pull information from"
+    type: string
+    default: ${HOST_SITE_PORT}
+steps:
+  - build-tools/ensure-command:
+      command: mysql
+  - build-tools/ensure-command:
+      command: rsync
+  - run:
+      environment:
+        SITE_USER: <<parameters.site-user>>
+        SITE_IP: <<parameters.site-ip>>
+        SITE_PORT: <<parameters.site-port>>
+      name: Create and Pull Database From Kinsta
+      command: pull-db-kinsta

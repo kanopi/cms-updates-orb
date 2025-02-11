@@ -13,5 +13,5 @@ steps:
   - run:
       environment:
         SITE_ID: <<parameters.site-id>>
-      name: Create and Pull Database From Acquia
+      name: Create and Pull Database From WP Engine
       command: pull-db-wpengine
