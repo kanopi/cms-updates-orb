@@ -150,15 +150,3 @@ workflows:
           is-multisite: true
           multisite-subdomains: true
           run-local: true
-      - cms-updates/run-update:
-          name: "foxyboxwaxbar"
-          cms: "wordpress"
-          repo: "git@github.com:kanopi/foxyboxwaxbar"
-          pr-branch: "main"
-          update-branch: "cms-updates/test"
-          site-hosting: "kinsta"
-          site-id: "foxyboxwaxbarcom"
-          site-ip: "34.95.13.225"
-          site-port: "28998"
-          update-method: "composer"
-          run-local: true
