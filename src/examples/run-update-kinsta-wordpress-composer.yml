@@ -1,5 +1,5 @@
 description: >
-  Run WordPress Updates on WP Engine with WPCLI.
+  Run WordPress Updates on Kinsta with WPCLI.
 usage:
   version: 2.1
   orbs:
@@ -13,7 +13,9 @@ usage:
       jobs:
         - cms-updates/run-update:
             cms: "wordpress"
-            site-hosting: "wpengine"
+            site-hosting: "kinsta"
+            site-ip: "site-ip"
             site-id: "site-id"
-            update-method: "wpcli"
+            site-port: "site-port"
+            update-method: "composer"
             context: content-name

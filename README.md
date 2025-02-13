@@ -60,12 +60,12 @@ pr-branch | string |   | ${CIRCLE_BRANCH} | 7.4, 8.0, 8.1, 8.2, 8.3 | What is th
 repo | string |   | ${CIRCLE_REPOSITORY_URL} | 7.4, 8.0, 8.1, 8.2, 8.3 | The url to use for cloning the repo
 run-local | boolean |   | false | 7.4, 8.0, 8.1, 8.2, 8.3 |
 site-env | string |   |  | 7.4, 8.0, 8.1, 8.2, 8.3 | The environment on the remote host to pull information from.
-site-hosting | enum  |   | general | general, pantheon, wpengine | What hosting is the site using?
-site-id | string |   |  | general, pantheon, wpengine | The site name on the remote host to pull information from
-skip-pr-if-opened | boolean |   | false | general, pantheon, wpengine | Cancel the step if there is a PR already opened
-table-prefix | string |   | wp_ | general, pantheon, wpengine | The table prefix to use. Primarily used for WordPress configuration.
-update-branch | string |   | automated/cms-updates | general, pantheon, wpengine | The name of the branch to run updates with.
-update-message | string |   | Automated Updated | general, pantheon, wpengine | Commit message used for changed items.
+site-hosting | enum  |   | general | general, pantheon, wpengine, kinsta | What hosting is the site using?
+site-id | string |   |  | general, pantheon, wpengine, kinsta | The site name on the remote host to pull information from
+skip-pr-if-opened | boolean |   | false | general, pantheon, wpengine, kinsta | Cancel the step if there is a PR already opened
+table-prefix | string |   | wp_ | general, pantheon, wpengine, kinsta | The table prefix to use. Primarily used for WordPress configuration.
+update-branch | string |   | automated/cms-updates | general, pantheon, wpengine, kinsta | The name of the branch to run updates with.
+update-message | string |   | Automated Updated | general, pantheon, wpengine, kinsta | Commit message used for changed items.
 update-method | enum  | X |  | composer, drush, wpcli | The update-method used for running updates.
 resource-class | enum  |   |  | small, medium, medium+, large, xlarge, 2xlarge, 2xlarge+ | The size of the circleci container to run.
 
@@ -118,6 +118,7 @@ happens after the update process.
   - [Update with WPCLI on Pantheon](src/examples/run-update-pantheon-wordpress-wpcli.yml)
   - [Update with WPCLI on WPEngine](src/examples/run-update-wpengine-wordpress-wpcli.yml)
   - [Update with WPCLI on WPEngine (MultiSite)](src/examples/run-update-wpengine-wordpress-wpcli-multisite.yml)
+  - [Update with WPCLI on Kinsta](src/examples/run-update-kinsta-wordpress-wpcli.yml)
 
 ## Testing
 

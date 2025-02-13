@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+# Abort if anything fails
+set -e
+
+if [[ "${SITE_ID}" == "" ]]; then
+  echo "SITE_ID variable is required"
+  exit 1
+fi
+
+DB_FILE="${SITE_ID}.sql"
+LOCAL_FILE="/tmp/${DB_FILE}"
+SSH_URL="-p ${SITE_PORT:-22} ${SITE_ID}@${SITE_IP}"
+
+echo "Exporting the remote database..."
+ssh ${SSH_URL} "cd ~/public; wp db dump ../${DB_FILE};"
+
+echo "Downloading Database..."
+rsync -avz -e "ssh -p ${SITE_PORT}" $SITE_ID@${SITE_IP}:~/public/../${DB_FILE} $LOCAL_FILE
+
+echo "Database downloaded. Removing remote db file..."
+ssh ${SSH_URL} "rm ~/public/../${DB_FILE}"
+
+echo "Importing Database..."
+cat ${LOCAL_FILE} | pv --eta --progress --size `ls -l ${LOCAL_FILE} | awk '{print $5}'` --name '  Importing.. ' | mysql -h ${DB_HOST} -u ${DB_USER} -p${DB_PASS} ${DB_NAME}

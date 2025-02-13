@@ -32,7 +32,7 @@ parameters:
   site-hosting:
     description: "What hosting is the site using?"
     type: enum
-    enum: ["general", "pantheon", "wpengine"]
+    enum: ["general", "pantheon", "wpengine", "kinsta"]
     default: "general"
   site-id:
     description: "The site name on the remote host to pull information from"
@@ -40,6 +40,14 @@ parameters:
     default: ""
   site-env:
     description: "The environment on the remote host to pull information from."
+    type: string
+    default: ""
+  site-ip:
+    description: "The site IP on the remote host to pull information from"
+    type: string
+    default: ""
+  site-port:
+    description: "The site port on the remote host to pull information from"
     type: string
     default: ""
   is-multisite:
@@ -218,14 +226,16 @@ steps:
                     sudo ln -sf ${HOME}/config/config/hosting/pantheon/pantheon.ini /etc/php.d/pantheon.ini
         - when:
             condition:
-              equal: ["wpengine", <<parameters.site-hosting>>]
+              or:
+                - equal: ["wpengine", <<parameters.site-hosting>>]
+                - equal: ["kinsta", <<parameters.site-hosting>>]
             steps:
               # Should I run a check on this to see if necessary?
               - install-wp-core
               - run:
                   environment:
                     TABLE_PREFIX: <<parameters.table-prefix>>
-                  name: Setup WPConfig
+                  name: Setup wp-config
                   command: |
                     wp config create \
                       --dbname="${DB_NAME}" \
@@ -256,6 +266,14 @@ steps:
               - pull-db-acquia:
                   site-id: '<<parameters.site-id>>'
                   site-env: '<<parameters.site-env>>'
+        - when:
+            condition:
+              equal: ["kinsta", <<parameters.site-hosting>>]
+            steps:
+              - pull-db-kinsta:
+                  site-id: '<<parameters.site-id>>'
+                  site-ip: '<<parameters.site-ip>>'
+                  site-port: '<<parameters.site-port>>'
         - when:
             condition:
               equal: ["wpengine", <<parameters.site-hosting>>]
