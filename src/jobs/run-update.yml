@@ -131,7 +131,7 @@ steps:
         fi
   # Install Tools
   - ci-tools/install-github-cli:
-      version: '2.4.0'
+      version: '2.62.0'
   - when:
       condition:
         and:
