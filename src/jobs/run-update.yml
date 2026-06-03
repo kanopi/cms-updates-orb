@@ -107,6 +107,17 @@ parameters:
     default: false
     description: "Cancel the step if there is a PR already opened"
     type: boolean
+  export-config:
+    description: >
+      For Drupal sites: whether to run `drush cex -y` against the runner's
+      database after composer update. When true (default, backwards-compatible),
+      any config drift between the pulled DB and the committed config/
+      directory is captured in the resulting PR. Set false to skip the export
+      and keep the auto-PR scoped strictly to composer.json / composer.lock
+      changes — useful when config drift is reconciled through a separate
+      workflow and should not appear in automated update PRs.
+    type: boolean
+    default: true
   resource-class:
     type: enum
     enum: [small, medium, medium+, large, xlarge, 2xlarge, 2xlarge+]
@@ -331,6 +342,7 @@ steps:
                   update-method: <<parameters.update-method>>
                   docroot: <<parameters.docroot>>
                   composer-version: <<parameters.composer-version>>
+                  export-config: <<parameters.export-config>>
   - when:
       condition:
         equal: ["drupal", <<parameters.cms>>]
@@ -343,6 +355,7 @@ steps:
                   update-method: <<parameters.update-method>>
                   docroot: <<parameters.docroot>>
                   composer-version: <<parameters.composer-version>>
+                  export-config: <<parameters.export-config>>
   - when:
       condition:
         equal: ["wordpress", <<parameters.cms>>]
