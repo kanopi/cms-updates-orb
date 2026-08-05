@@ -19,6 +19,7 @@
 -->
 
 ### Description
+- [ ] Was AI used in this pull request?
 
 <!---
   Describe your changes in detail, preferably in an imperative mood,
