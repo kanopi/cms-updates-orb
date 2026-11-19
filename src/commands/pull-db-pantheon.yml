@@ -25,7 +25,7 @@ steps:
         SITE_ID: <<parameters.site-id>>
         SITE_ENV: <<parameters.site-env>>
       name: Creating a new backup
-      command: terminus backup:create ${SITE_ID}.${SITE_ENV} --element=db
+      command: terminus backup:create ${SITE_ID}.${SITE_ENV} --element=db --keep-for=30
       no_output_timeout: 30m
   - run:
       environment:
